@@ -1,0 +1,20 @@
+# NBA Draft Randomizer
+
+An interactive NBA draft game where two players compete to build the best roster with random team and era constraints.
+
+## Quick Start
+
+```bash
+npm install
+npm run dev
+```
+
+Visit `http://localhost:3000` to play!
+
+## Deploy to Vercel
+
+```bash
+vercel
+```
+
+Or connect your GitHub repo to Vercel for automatic deployments.

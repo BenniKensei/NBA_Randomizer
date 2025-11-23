@@ -1,0 +1,189 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Trophy, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { staggerFadeIn } from '@/lib/animations';
+import { ERAS } from '@/constants/gameData';
+
+interface StartScreenProps {
+  onStart: (selectedEras: string[], noDuplicates: boolean, skipEnabled: boolean, moveEnabled: boolean, player1Name: string, player2Name: string) => void;
+}
+
+export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [selectedEras, setSelectedEras] = useState<string[]>(ERAS);
+  const [noDuplicates, setNoDuplicates] = useState(false);
+  const [skipEnabled, setSkipEnabled] = useState(true);
+  const [moveEnabled, setMoveEnabled] = useState(true);
+  const [player1Name, setPlayer1Name] = useState('Player 1');
+  const [player2Name, setPlayer2Name] = useState('Player 2');
+
+  useEffect(() => {
+    if (contentRef.current) {
+      staggerFadeIn(contentRef.current.children, { delay: 200, duration: 800 });
+    }
+  }, []);
+
+  const toggleEra = (era: string) => {
+    setSelectedEras(prev => 
+      prev.includes(era) 
+        ? prev.filter(e => e !== era)
+        : [...prev, era]
+    );
+  };
+
+  const selectAll = () => setSelectedEras(ERAS);
+  const deselectAll = () => setSelectedEras([]);
+
+  const handleStart = () => {
+    if (selectedEras.length === 0) {
+      alert('Please select at least one era!');
+      return;
+    }
+    onStart(selectedEras, noDuplicates, skipEnabled, moveEnabled, player1Name, player2Name);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
+      <div ref={contentRef} className="max-w-md w-full text-center">
+        <div className="mb-8 flex justify-center text-red-600">
+          <Trophy size={80} strokeWidth={1.5} />
+        </div>
+        <h1 className="text-5xl font-black text-white mb-4 tracking-tight drop-shadow-lg">
+          NBA DRAFT<br/>RANDOMIZER
+        </h1>
+        <p className="text-slate-300 mb-8 text-lg leading-relaxed">
+          Spin for a random <span className="font-bold text-red-600">Team & Era</span>, then draft your best player for each position.
+          <br/>
+          <span className="text-sm font-medium mt-3 block text-slate-400 bg-slate-800/50 py-2 px-4 rounded-lg inline-block">
+            🏀 1v1 Local Multiplayer
+          </span>
+        </p>
+        
+        {/* Player Names */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-1.5 text-left">Player 1 Name</label>
+            <input
+              type="text"
+              value={player1Name}
+              onChange={(e) => setPlayer1Name(e.target.value)}
+              placeholder="Player 1"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-1.5 text-left">Player 2 Name</label>
+            <input
+              type="text"
+              value={player2Name}
+              onChange={(e) => setPlayer2Name(e.target.value)}
+              placeholder="Player 2"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        
+        {/* Settings Button */
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="w-full mb-4 flex items-center justify-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-800/50 hover:bg-slate-700/50 py-3 px-4 rounded-lg"
+        >
+          <Settings size={20} />
+          <span className="font-medium">Game Settings</span>
+        </button>
+
+        {/* Settings Panel */}
+        {showSettings && (
+          <div className="mb-6 bg-slate-800/80 rounded-lg p-5 text-left backdrop-blur-sm border border-slate-700">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-bold text-lg">Select Eras</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={selectAll}
+                  className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+                >
+                  Select All
+                </button>
+                <span className="text-slate-600">|</span>
+                <button
+                  onClick={deselectAll}
+                  className="text-xs text-red-400 hover:text-red-300 font-medium"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2">
+              {ERAS.map((era) => (
+                <label
+                  key={era}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-slate-700/50 cursor-pointer transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedEras.includes(era)}
+                    onChange={() => toggleEra(era)}
+                    className="w-4 h-4 rounded border-slate-600 text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 bg-slate-700 cursor-pointer"
+                  />
+                  <span className="text-slate-200 text-sm font-medium">{era}</span>
+                </label>
+              ))}
+            </div>
+            
+            <div className="mt-4 text-center text-xs text-slate-400">
+              {selectedEras.length} / {ERAS.length} eras selected
+            </div>
+            
+            {/* Game Features */}
+            <div className="mt-5 pt-4 border-t border-slate-700 space-y-2">
+              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={noDuplicates}
+                  onChange={(e) => setNoDuplicates(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600 text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 bg-slate-700 cursor-pointer"
+                />
+                <div className="flex-1">
+                  <span className="text-slate-200 text-sm font-bold block">No Duplicate Teams</span>
+                  <span className="text-slate-400 text-xs">Each team can only appear once per roster</span>
+                </div>
+              </label>
+              
+              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={skipEnabled}
+                  onChange={(e) => setSkipEnabled(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600 text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 bg-slate-700 cursor-pointer"
+                />
+                <div className="flex-1">
+                  <span className="text-slate-200 text-sm font-bold block">Enable Skip Ability</span>
+                  <span className="text-slate-400 text-xs">Each player can skip one team or era per game</span>
+                </div>
+              </label>
+              
+              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={moveEnabled}
+                  onChange={(e) => setMoveEnabled(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600 text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 bg-slate-700 cursor-pointer"
+                />
+                <div className="flex-1">
+                  <span className="text-slate-200 text-sm font-bold block">Enable Move Ability</span>
+                  <span className="text-slate-400 text-xs">Each player can move one drafted player to an empty slot per game</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        )}
+        
+        <Button onClick={handleStart} className="w-full py-5 text-xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow">
+          Start Draft
+        </Button>
+      </div>
+    </div>
+  );
+};

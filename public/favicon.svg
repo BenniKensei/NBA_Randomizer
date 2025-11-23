@@ -1,0 +1,20 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer circle - split blue/red -->
+  <path d="M 50 5 A 45 45 0 0 1 95 50 A 45 45 0 0 1 50 95 L 50 50 Z" fill="#EF4444"/>
+  <path d="M 50 5 A 45 45 0 0 0 5 50 A 45 45 0 0 0 50 95 L 50 50 Z" fill="#3B82F6"/>
+  
+  <!-- Inner white circle -->
+  <circle cx="50" cy="50" r="32" fill="#F8F9FA"/>
+  
+  <!-- Inner split blue/red circle -->
+  <path d="M 50 24 A 26 26 0 0 1 76 50 A 26 26 0 0 1 50 76 L 50 50 Z" fill="#EF4444"/>
+  <path d="M 50 24 A 26 26 0 0 0 24 50 A 26 26 0 0 0 50 76 L 50 50 Z" fill="#3B82F6"/>
+  
+  <!-- Circular arrow - top -->
+  <path d="M 50 18 A 32 32 0 0 0 28 28" stroke="#F8F9FA" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 45 12 L 50 18 L 54 13 Z" fill="#F8F9FA"/>
+  
+  <!-- Circular arrow - bottom -->
+  <path d="M 50 82 A 32 32 0 0 0 72 72" stroke="#F8F9FA" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 55 88 L 50 82 L 46 87 Z" fill="#F8F9FA"/>
+</svg>
