@@ -495,7 +495,7 @@ export default function Game() {
     setIsSpinning(false);
   };
 
-  const submitPick = async () => {
+  const submitPick = () => {
     if (!draftInput.trim() || !spinResult || !selectedPosition) return;
     if (isOnlineMode && !isMyTurn) return;
 
@@ -538,7 +538,7 @@ export default function Game() {
     setSelectedPosition(null);
 
     const newPickIndex = pickIndex + 1;
-    const newGameFinished = newPickIndex === 12; // Fixed: was checking pickIndex === 11, should be newPickIndex === 12
+    const newGameFinished = pickIndex === 11;
     
     if (newGameFinished) {
       setGameFinished(true);
@@ -546,31 +546,21 @@ export default function Game() {
       setPickIndex(newPickIndex);
     }
     
-    console.log('After pick - newP1Roster:', newP1Roster);
-    console.log('After pick - newP2Roster:', newP2Roster);
-    console.log('newPickIndex:', newPickIndex);
-    
     // Sync to Firebase with the new values immediately
     if (isOnlineMode) {
-      const spinResultForFirebase = null;
-      await updateGameState(multiplayerGameId!, {
+      syncToFirebase({
         p1Roster: newP1Roster,
         p2Roster: newP2Roster,
         pickIndex: newPickIndex,
         gameFinished: newGameFinished,
         usedTeams: newUsedTeams,
-        spinResult: spinResultForFirebase,
+        spinResult: null,
         selectedPosition: null,
-        p1SkipUsed,
-        p2SkipUsed,
-        p1MoveUsed,
-        p2MoveUsed,
       });
-      console.log('Synced to Firebase successfully');
     }
   };
 
-  const skipTeam = async () => {
+  const skipTeam = () => {
     const currentSkipUsed = currentPlayer === 1 ? p1SkipUsed : p2SkipUsed;
     if (!spinResult || currentSkipUsed) return;
     if (isOnlineMode && !isMyTurn) return;
@@ -582,37 +572,16 @@ export default function Game() {
     if (availableTeams.length === 0) return;
     
     const newTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
-    const newSpinResult = { ...spinResult, team: newTeam };
-    setSpinResult(newSpinResult);
-    
-    const newP1SkipUsed = currentPlayer === 1 ? true : p1SkipUsed;
-    const newP2SkipUsed = currentPlayer === 2 ? true : p2SkipUsed;
+    setSpinResult({ ...spinResult, team: newTeam });
     
     if (currentPlayer === 1) {
       setP1SkipUsed(true);
     } else {
       setP2SkipUsed(true);
     }
-    
-    // Sync to Firebase immediately
-    if (isOnlineMode && multiplayerGameId) {
-      await updateGameState(multiplayerGameId, {
-        p1Roster,
-        p2Roster,
-        pickIndex,
-        gameFinished,
-        usedTeams,
-        spinResult: { team: newTeam.name, era: newSpinResult.era },
-        selectedPosition,
-        p1SkipUsed: newP1SkipUsed,
-        p2SkipUsed: newP2SkipUsed,
-        p1MoveUsed,
-        p2MoveUsed,
-      });
-    }
   };
 
-  const skipEra = async () => {
+  const skipEra = () => {
     const currentSkipUsed = currentPlayer === 1 ? p1SkipUsed : p2SkipUsed;
     if (!spinResult || currentSkipUsed) return;
     if (isOnlineMode && !isMyTurn) return;
@@ -621,33 +590,12 @@ export default function Game() {
     if (availableEras.length === 0) return;
     
     const newEra = availableEras[Math.floor(Math.random() * availableEras.length)];
-    const newSpinResult = { ...spinResult, era: newEra };
-    setSpinResult(newSpinResult);
-    
-    const newP1SkipUsed = currentPlayer === 1 ? true : p1SkipUsed;
-    const newP2SkipUsed = currentPlayer === 2 ? true : p2SkipUsed;
+    setSpinResult({ ...spinResult, era: newEra });
     
     if (currentPlayer === 1) {
       setP1SkipUsed(true);
     } else {
       setP2SkipUsed(true);
-    }
-    
-    // Sync to Firebase immediately
-    if (isOnlineMode && multiplayerGameId) {
-      await updateGameState(multiplayerGameId, {
-        p1Roster,
-        p2Roster,
-        pickIndex,
-        gameFinished,
-        usedTeams,
-        spinResult: { team: newSpinResult.team.name, era: newEra },
-        selectedPosition,
-        p1SkipUsed: newP1SkipUsed,
-        p2SkipUsed: newP2SkipUsed,
-        p1MoveUsed,
-        p2MoveUsed,
-      });
     }
   };
 
