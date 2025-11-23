@@ -39,7 +39,7 @@ npm run build
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to play!
+Open [http://localhost:3000](http://localhost:3000](https://nba-randomizer-lxn31p0tb-bennis-projects-9f13139c.vercel.app)) to play!
 
 ## 📖 How to Play
 
