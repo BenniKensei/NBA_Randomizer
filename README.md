@@ -1,13 +1,27 @@
 # NBA Draft Randomizer 🏀
 
-An interactive NBA draft game where two players compete to build the best roster with random team and era constraints!
+An interactive web application for conducting randomized NBA draft games with friends - both locally and online!
 
-## 📚 Documentation
+## ✨ Features
 
-- [Full README](./docs/README.md) - Complete project documentation
-- [Deployment Guide](./docs/DEPLOYMENT.md) - How to deploy to Vercel
-- [Setup Guide](./docs/SETUP_COMPLETE.md) - Setup instructions
-- [Copyright-Free Resources](./docs/COPYRIGHT_FREE_RESOURCES.md) - Where to find free assets
+### 🏠 Local Multiplayer (1v1)
+- Two players share one device
+- Turn-based drafting system
+- 6 rounds of picks per player
+- Position randomizer (PG, SG, SF, PF, C)
+- Team and era randomization
+- Skip abilities for team or era (once per player)
+- Move players between positions (once per player)
+
+### 🌐 Online Multiplayer
+- Play against friends remotely in real-time
+- Real-time synchronization via Firebase
+- Shareable game codes (6-digit codes)
+- Direct URL sharing for instant joining
+- Turn-based control - only active player can interact
+- Disconnection detection and notifications
+- Pause/resume game support
+- Rematch functionality
 
 ## 🚀 Quick Start
 
@@ -27,23 +41,66 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000) to play!
 
-## 🎮 How to Play
+## 📖 How to Play
 
-1. **Start** - Click "Start Draft"
-2. **Spin** - Get a random NBA team + era
-3. **Choose** - Select any available position
-4. **Draft** - Name a player from that team/era
-5. **Repeat** - Alternate between players until all 6 positions filled
-6. **Compare** - See who built the better squad!
+### Local Multiplayer
+1. Click "Local Multiplayer" on the start screen
+2. Configure game settings (enable/disable Skip and Move abilities)
+3. Click "Start Game"
+4. Players alternate turns:
+   - Click "SPIN" to randomize team and era
+   - Select a position for your drafted player
+   - Enter player name and submit
+
+### Online Multiplayer
+1. Click "Online Multiplayer" on the start screen
+2. Choose to create or join a game:
+   - **Create Game**: Share the game code or URL with your friend
+   - **Join Game**: Enter the 6-digit code or use the shared URL
+3. Wait for both players to join
+4. Host configures game settings and starts the game
+5. Take turns drafting (only active player can interact)
+6. Use "Menu" to pause and "Continue Online Draft" to resume
+7. Use "Rematch" to start a new game with the same opponent
+
+## 🎮 Game Rules
+
+- Each player drafts 6 players (one for each position: PG, SG, SF, PF, C)
+- The randomizer selects a team and era for each pick
+- Players must pick from that team and era combination
+- Optional abilities:
+  - **Skip Team/Era**: Use once per game to get a new random team or era
+  - **Move Player**: Use once per game to swap a player's position
+
+## 🔥 Firebase Setup (for Online Multiplayer)
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Realtime Database
+3. Set database rules:
+```json
+{
+  "rules": {
+    "games": {
+      "$gameId": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
+```
+4. Copy your Firebase configuration
+5. Update `src/lib/firebase.ts` with your credentials
+6. (Optional) Create `.env.local` file - see `.env.example`
 
 ## 🛠️ Tech Stack
 
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Animations:** Anime.js
-- **Icons:** Lucide React
-- **Deployment:** Vercel
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Real-time Database**: Firebase Realtime Database
+- **Icons**: Lucide React
+- **Deployment**: Vercel
 
 ## 📂 Project Structure
 
@@ -55,31 +112,39 @@ src/
 │   └── globals.css        # Global styles
 ├── components/
 │   ├── game/              # Game-specific components
-│   │   ├── Game.tsx       # Main game logic
-│   │   ├── StartScreen.tsx
-│   │   ├── EndScreen.tsx
-│   │   ├── SpinnerCard.tsx
-│   │   └── RosterDisplay.tsx
+│   │   ├── Game.tsx       # Main game controller
+│   │   ├── StartScreen.tsx # Mode selection & config
+│   │   ├── SpinnerCard.tsx # Randomizer UI
+│   │   ├── EndScreen.tsx  # Game results
+│   │   ├── RosterDisplay.tsx # Roster display
+│   │   └── MultiplayerSetup.tsx # Online game setup
 │   └── ui/                # Reusable UI components
 │       ├── Button.tsx
 │       └── Card.tsx
-├── constants/             # Game data constants
-│   └── gameData.ts        # Teams, eras, positions
-├── hooks/                 # Custom React hooks
-│   └── useGameHelpers.ts
-├── lib/                   # Utility libraries
-│   └── animations.ts      # Animation helpers
+├── data/                  # NBA teams and eras data
+├── lib/                   # Firebase configuration
+│   └── firebase.ts
 ├── types/                 # TypeScript definitions
-│   └── index.ts
+│   ├── index.ts
+│   └── multiplayer.ts
 └── utils/                 # Utility functions
-    ├── gameLogic.ts       # Game logic helpers
-    └── storage.ts         # LocalStorage helpers
+    └── multiplayer.ts     # Multiplayer game logic
 ```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
 MIT License - Free to use!
 
+## 🙏 Acknowledgments
+
+- NBA team data and logos
+- Lucide React for icons
+- Firebase for real-time multiplayer capabilities
+
 ---
 
-**Built with ❤️ for NBA fans**
+**Built with ❤️ for NBA fans by backbenni88-ai**

@@ -19,6 +19,7 @@ interface SpinnerCardProps {
   onSkipEra: () => void;
   skipUsed: boolean;
   skipEnabled: boolean;
+  disabled?: boolean;
 }
 
 export const SpinnerCard: React.FC<SpinnerCardProps> = ({
@@ -34,7 +35,8 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
   onSkipTeam,
   onSkipEra,
   skipUsed,
-  skipEnabled
+  skipEnabled,
+  disabled = false,
 }) => {
   const resultCardsRef = useRef<HTMLDivElement>(null);
   const positionGridRef = useRef<HTMLDivElement>(null);
@@ -71,7 +73,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
           <p className="text-slate-500 mb-6 text-lg">
             Spin to get your <strong className="text-slate-800">Team & Era</strong> constraint, then pick your position.
           </p>
-          <Button onClick={onSpin} className="w-full text-lg h-16 shadow-xl hover:shadow-2xl transition-all">
+          <Button onClick={onSpin} disabled={disabled} className="w-full text-lg h-16 shadow-xl hover:shadow-2xl transition-all">
             🎲 SPIN WHEEL
           </Button>
         </div>
@@ -85,9 +87,9 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                 {!isSpinning && spinResult && skipEnabled && (
                   <button
                     onClick={onSkipTeam}
-                    disabled={skipUsed}
+                    disabled={skipUsed || disabled}
                     className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded transition-all ${
-                      skipUsed
+                      skipUsed || disabled
                         ? 'text-slate-300 cursor-not-allowed'
                         : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                     }`}
@@ -110,9 +112,9 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                 {!isSpinning && spinResult && skipEnabled && (
                   <button
                     onClick={onSkipEra}
-                    disabled={skipUsed}
+                    disabled={skipUsed || disabled}
                     className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded transition-all ${
-                      skipUsed
+                      skipUsed || disabled
                         ? 'text-slate-300 cursor-not-allowed'
                         : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                     }`}
@@ -139,24 +141,33 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                 <label className="block text-sm font-bold text-slate-600 mb-2">
                   Select Position:
                 </label>
-                <div ref={positionGridRef} className="grid grid-cols-3 gap-2">
-                  {availablePositions.map((pos) => (
-                    <button
-                      key={pos}
-                      onClick={() => onPositionSelect(pos)}
-                      className={`
-                        px-4 py-3 rounded-lg font-bold text-sm transition-all
-                        ${
-                          selectedPosition === pos
-                            ? 'bg-orange-500 text-white ring-2 ring-orange-300 scale-105'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:scale-105'
-                        }
-                      `}
-                    >
-                      {pos}
-                    </button>
-                  ))}
-                </div>
+                {availablePositions.length > 0 ? (
+                  <div ref={positionGridRef} className="grid grid-cols-3 gap-2">
+                    {availablePositions.map((pos) => (
+                      <button
+                        key={pos}
+                        onClick={() => onPositionSelect(pos)}
+                        disabled={disabled}
+                        className={`
+                          px-4 py-3 rounded-lg font-bold text-sm transition-all
+                          ${
+                            selectedPosition === pos
+                              ? 'bg-orange-500 text-white ring-2 ring-orange-300 scale-105'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:scale-105'
+                          }
+                          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                        `}
+                      >
+                        {pos}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-red-600 font-bold">No positions available!</p>
+                    <p className="text-sm text-red-500">All roster slots are filled.</p>
+                  </div>
+                )}
               </div>
 
               {/* Player Name Input */}
@@ -169,11 +180,12 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                     placeholder={`Name a ${spinResult.team.name} ${selectedPosition}...`}
                     className="w-full p-4 text-lg border-2 border-slate-300 rounded-lg mb-4 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-center font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400"
                     autoFocus
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && onSubmit()}
+                    disabled={disabled}
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !disabled && onSubmit()}
                   />
                   <Button 
                     onClick={onSubmit} 
-                    disabled={!draftInput.trim()} 
+                    disabled={!draftInput.trim() || disabled} 
                     className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all"
                   >
                     🔒 Lock In Pick

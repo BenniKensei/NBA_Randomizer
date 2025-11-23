@@ -1,20 +1,45 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Trophy, Settings } from 'lucide-react';
+import { Trophy, Settings, Users, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { MultiplayerSetup } from '@/components/game/MultiplayerSetup';
 import { staggerFadeIn } from '@/lib/animations';
 import { ERAS } from '@/constants/gameData';
 
 interface StartScreenProps {
   onStart: (selectedEras: string[], noDuplicates: boolean, skipEnabled: boolean, moveEnabled: boolean) => void;
+  hasStartedDraft?: boolean;
+  onContinue?: () => void;
+  onCreateOnlineGame?: () => void;
+  onJoinOnlineGame?: (gameId: string) => void;
+  multiplayerGameUrl?: string;
+  isWaitingForPlayer?: boolean;
+  hasActiveOnlineGame?: boolean;
 }
 
-export function StartScreen({ onStart }: StartScreenProps) {
+export function StartScreen({ 
+  onStart, 
+  hasStartedDraft, 
+  onContinue,
+  onCreateOnlineGame,
+  onJoinOnlineGame,
+  multiplayerGameUrl,
+  isWaitingForPlayer,
+  hasActiveOnlineGame
+}: StartScreenProps): JSX.Element {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [gameMode, setGameMode] = useState<'local' | 'online' | null>(null);
   const [selectedEras, setSelectedEras] = useState<string[]>(ERAS);
   const [noDuplicates, setNoDuplicates] = useState(false);
   const [skipEnabled, setSkipEnabled] = useState(true);
   const [moveEnabled, setMoveEnabled] = useState(true);
+
+  // Reset to mode selection when hasStartedDraft becomes false
+  useEffect(() => {
+    if (!hasStartedDraft) {
+      setGameMode(null);
+    }
+  }, [hasStartedDraft]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -41,6 +66,105 @@ export function StartScreen({ onStart }: StartScreenProps) {
     onStart(selectedEras, noDuplicates, skipEnabled, moveEnabled);
   };
 
+  const handleCreateOnlineGame = () => {
+    if (selectedEras.length === 0) {
+      alert('Please select at least one era!');
+      return;
+    }
+    if (onCreateOnlineGame) {
+      onCreateOnlineGame();
+    }
+  };
+
+  const handleJoinOnlineGame = (gameId: string) => {
+    if (onJoinOnlineGame) {
+      onJoinOnlineGame(gameId);
+    }
+  };
+
+  // Show mode selection if no mode is selected yet
+  if (!gameMode && !hasStartedDraft && !isWaitingForPlayer && !hasActiveOnlineGame) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
+        <div ref={contentRef} className="max-w-md w-full text-center">
+          <div className="mb-8 flex justify-center text-red-600">
+            <Trophy size={80} strokeWidth={1.5} />
+          </div>
+          <h1 className="text-5xl font-black text-white mb-4 tracking-tight drop-shadow-lg">
+            NBA DRAFT<br/>RANDOMIZER
+          </h1>
+          <p className="text-slate-300 mb-8 text-lg leading-relaxed">
+            Spin for a random <span className="font-bold text-red-600">Team & Era</span>, then draft your best player for each position.
+          </p>
+
+          <div className="space-y-4 mb-6">
+            <Button
+              onClick={() => setGameMode('local')}
+              className="w-full py-6 text-xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow flex items-center justify-center gap-3"
+            >
+              <Gamepad2 size={24} />
+              Local Multiplayer
+            </Button>
+            
+            <Button
+              onClick={() => setGameMode('online')}
+              className="w-full py-6 text-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-shadow bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 flex items-center justify-center gap-3"
+            >
+              <Users size={24} />
+              Online Multiplayer
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show mode selection with Continue button if there's an active online game
+  if (!gameMode && hasActiveOnlineGame && !isWaitingForPlayer) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
+        <div ref={contentRef} className="max-w-md w-full text-center">
+          <div className="mb-8 flex justify-center text-red-600">
+            <Trophy size={80} strokeWidth={1.5} />
+          </div>
+          <h1 className="text-5xl font-black text-white mb-4 tracking-tight drop-shadow-lg">
+            NBA DRAFT<br/>RANDOMIZER
+          </h1>
+          <p className="text-slate-300 mb-8 text-lg leading-relaxed">
+            Spin for a random <span className="font-bold text-red-600">Team & Era</span>, then draft your best player for each position.
+          </p>
+
+          <div className="space-y-4 mb-6">
+            {/* Continue Online Draft button */}
+            <Button
+              onClick={onContinue}
+              className="w-full py-6 text-xl shadow-xl shadow-green-500/30 hover:shadow-green-500/50 transition-shadow bg-green-600 hover:bg-green-700 flex items-center justify-center gap-3"
+            >
+              <Users size={24} />
+              Continue Online Draft
+            </Button>
+            
+            <Button
+              onClick={() => setGameMode('local')}
+              className="w-full py-6 text-xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow flex items-center justify-center gap-3"
+            >
+              <Gamepad2 size={24} />
+              Local Multiplayer
+            </Button>
+            
+            <Button
+              onClick={() => setGameMode('online')}
+              className="w-full py-6 text-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-shadow bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 flex items-center justify-center gap-3"
+            >
+              <Users size={24} />
+              New Online Game
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
       <div ref={contentRef} className="max-w-md w-full text-center">
@@ -52,20 +176,50 @@ export function StartScreen({ onStart }: StartScreenProps) {
         </h1>
         <p className="text-slate-300 mb-8 text-lg leading-relaxed">
           Spin for a random <span className="font-bold text-red-600">Team & Era</span>, then draft your best player for each position.
-          <br/>
-          <span className="text-sm font-medium mt-3 block text-slate-400 bg-slate-800/50 py-2 px-4 rounded-lg inline-block">
-            🏀 1v1 Local Multiplayer
-          </span>
+          {gameMode && (
+            <>
+              <br/>
+              <span className="text-sm font-medium mt-3 block text-slate-400 bg-slate-800/50 py-2 px-4 rounded-lg inline-block">
+                {hasActiveOnlineGame || gameMode === 'online' ? '🌐 Online Multiplayer' : '🏀 1v1 Local Multiplayer'}
+              </span>
+            </>
+          )}
         </p>
+
+        {/* Back button when in mode selection */}
+        {gameMode && (
+          <button
+            onClick={() => setGameMode(null)}
+            className="w-full mb-4 text-slate-400 hover:text-white transition-colors text-sm"
+          >
+            ← Back to mode selection
+          </button>
+        )}
+
+        {/* Show multiplayer setup for online mode */}
+        {gameMode === 'online' && (isWaitingForPlayer || !hasStartedDraft) && (
+          <>
+            {!showSettings && (
+              <MultiplayerSetup
+                onCreateGame={handleCreateOnlineGame}
+                onJoinGame={handleJoinOnlineGame}
+                gameUrl={multiplayerGameUrl}
+                isWaitingForPlayer={isWaitingForPlayer}
+              />
+            )}
+          </>
+        )}
         
-        {/* Settings Button */}
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="w-full mb-4 flex items-center justify-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-800/50 hover:bg-slate-700/50 py-3 px-4 rounded-lg"
-        >
-          <Settings size={20} />
-          <span className="font-medium">Game Settings</span>
-        </button>
+        {/* Settings Button - only show for local mode or when configuring online game */}
+        {(gameMode === 'local' || (gameMode === 'online' && !isWaitingForPlayer)) && (
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="w-full mb-4 flex items-center justify-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-800/50 hover:bg-slate-700/50 py-3 px-4 rounded-lg"
+          >
+            <Settings size={20} />
+            <span className="font-medium">Game Settings</span>
+          </button>
+        )}
 
         {/* Settings Panel */}
         {showSettings && (
@@ -154,9 +308,40 @@ export function StartScreen({ onStart }: StartScreenProps) {
           </div>
         )}
         
-        <Button onClick={handleStart} className="w-full py-5 text-xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow">
-          Start Draft
-        </Button>
+        {/* Continue Draft button - only for local/resumed games */}
+        {hasStartedDraft && onContinue && gameMode === 'local' && (
+          <Button onClick={onContinue} className="w-full py-5 text-xl mb-4 shadow-xl shadow-green-500/30 hover:shadow-green-500/50 transition-shadow bg-green-600 hover:bg-green-700">
+            Continue Draft
+          </Button>
+        )}
+        
+        {/* Show start button for local mode */}
+        {gameMode === 'local' && !isWaitingForPlayer && (
+          <Button onClick={handleStart} className="w-full py-5 text-xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow">
+            Start Draft
+          </Button>
+        )}
+        
+        {/* Fallback: If no mode selected and we're in the main render, show mode selection */}
+        {!gameMode && !isWaitingForPlayer && (
+          <div className="space-y-4 mb-6">
+            <Button
+              onClick={() => setGameMode('local')}
+              className="w-full py-6 text-xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow flex items-center justify-center gap-3"
+            >
+              <Gamepad2 size={24} />
+              Local Multiplayer
+            </Button>
+            
+            <Button
+              onClick={() => setGameMode('online')}
+              className="w-full py-6 text-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-shadow bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 flex items-center justify-center gap-3"
+            >
+              <Users size={24} />
+              Online Multiplayer
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
