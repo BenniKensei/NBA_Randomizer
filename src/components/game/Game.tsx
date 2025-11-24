@@ -451,6 +451,7 @@ export default function Game() {
         setSpinResult(null);
         setDraftInput('');
         setSelectedPosition(null);
+        setGameStarted(true); // Keep game started for rematch
         
         // Sync cleared state to Firebase immediately
         syncToFirebase({
@@ -728,7 +729,17 @@ export default function Game() {
   }
 
   if (gameFinished) {
-    return <EndScreen p1Roster={p1Roster} p2Roster={p2Roster} onRestart={startGame} />;
+    const handlePlayAgain = () => {
+      if (isOnlineMode) {
+        // In online mode, trigger rematch
+        handleReset();
+      } else {
+        // In local mode, start new game
+        startGame();
+      }
+    };
+    
+    return <EndScreen p1Roster={p1Roster} p2Roster={p2Roster} onRestart={handlePlayAgain} />;
   }
 
   return (
