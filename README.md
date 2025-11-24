@@ -46,7 +46,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to start playing!
+Open [[https://nba-randomizer.vercel.app](https://nba-randomizer.vercel.app)] to start playing!
 
 ## 📖 How to Play
 
