@@ -20,9 +20,26 @@ export function MultiplayerSetup({
 
   const handleCopyLink = () => {
     if (gameUrl) {
-      navigator.clipboard.writeText(gameUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Fallback method that works in all browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = gameUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+      
+      document.body.removeChild(textArea);
     }
   };
 

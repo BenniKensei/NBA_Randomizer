@@ -1,4 +1,4 @@
-import { ref, set, onValue, update, get, remove, runTransaction, onDisconnect } from 'firebase/database';
+import { ref, set, onValue, update, get, remove, runTransaction } from 'firebase/database';
 import { database } from '@/lib/firebase';
 import { MultiplayerGameState } from '@/types/multiplayer';
 import { Roster } from '@/types';
@@ -85,10 +85,6 @@ export const createMultiplayerGame = async (
   
   await set(gameRef, initialState);
   
-  // Setup disconnect handler
-  const hostDisconnectRef = ref(database, `games/${gameId}/hostDisconnected`);
-  await onDisconnect(hostDisconnectRef).set(true);
-  
   return gameId;
 };
 
@@ -124,10 +120,6 @@ export const joinMultiplayerGame = async (
     if (!result.committed) {
       return false;
     }
-    
-    // Setup disconnect handler
-    const guestDisconnectRef = ref(database, `games/${gameId}/guestDisconnected`);
-    await onDisconnect(guestDisconnectRef).set(true);
     
     return true;
   } catch (error) {

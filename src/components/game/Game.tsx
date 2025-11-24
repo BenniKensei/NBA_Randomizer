@@ -241,17 +241,23 @@ export default function Game() {
   };
 
   const joinOnlineGame = async (gameId: string) => {
-    // If joining a new online game while in another online game, disconnect from the old one
-    if (isOnlineMode && multiplayerGameId && playerRole && multiplayerGameId !== gameId) {
-      await markPlayerDisconnected(multiplayerGameId, playerRole);
-    }
-    
-    const success = await joinMultiplayerGame(gameId, playerId);
-    
-    if (!success) {
-      alert('Could not join game. Game may not exist or is already full.');
-      return;
-    }
+    try {
+      console.log('Attempting to join game:', gameId);
+      
+      // If joining a new online game while in another online game, disconnect from the old one
+      if (isOnlineMode && multiplayerGameId && playerRole && multiplayerGameId !== gameId) {
+        await markPlayerDisconnected(multiplayerGameId, playerRole);
+      }
+      
+      const success = await joinMultiplayerGame(gameId, playerId);
+      
+      if (!success) {
+        console.error('Failed to join game:', gameId);
+        alert('Could not join game. Game may not exist or is already full.');
+        return;
+      }
+      
+      console.log('Successfully joined game:', gameId);
     
     // Clear localStorage for online mode
     localStorage.removeItem('nba-draft-game');
@@ -295,6 +301,10 @@ export default function Game() {
     });
     
     return unsubscribe;
+    } catch (error) {
+      console.error('Error joining game:', error);
+      alert('Failed to join game. Please try again.');
+    }
   };
 
   const syncGameState = (gameState: MultiplayerGameState) => {
@@ -695,7 +705,7 @@ export default function Game() {
   // Render Views
   if (!gameStarted) {
     const hasStartedDraft = !gameFinished && (pickIndex > 0 || p1Roster.some(p => p !== null) || p2Roster.some(p => p !== null));
-    const multiplayerUrl = multiplayerGameId ? `${window.location.origin}${window.location.pathname}?game=${multiplayerGameId}` : undefined;
+    const multiplayerUrl = multiplayerGameId ? `https://nba-randomizer.vercel.app?game=${multiplayerGameId}` : undefined;
     const hasActiveOnlineGame = isOnlineMode && multiplayerGameId !== null;
     
     return (
