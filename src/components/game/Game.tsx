@@ -259,48 +259,48 @@ export default function Game() {
       
       console.log('Successfully joined game:', gameId);
     
-    // Clear localStorage for online mode
-    localStorage.removeItem('nba-draft-game');
-    
-    // Clear all game state first
-    setP1Roster(Array(6).fill(null));
-    setP2Roster(Array(6).fill(null));
-    setPickIndex(0);
-    setGameFinished(false);
-    setUsedTeams([]);
-    setP1SkipUsed(false);
-    setP2SkipUsed(false);
-    setP1MoveUsed(false);
-    setP2MoveUsed(false);
-    setSpinResult(null);
-    setSelectedPosition(null);
-    setDraftInput("");
-    
-    setIsOnlineMode(true);
-    setPlayerRole('guest');
-    setMultiplayerGameId(gameId);
-    setGameStarted(true);
-    
-    // Subscribe to game updates
-    const unsubscribe = subscribeToGame(gameId, (gameState) => {
-      if (!gameState) {
-        // Game was deleted
-        alert('Game has ended or was deleted.');
-        cleanupMultiplayerSession();
-        return;
-      }
+      // Clear localStorage for online mode
+      localStorage.removeItem('nba-draft-game');
       
-      // Check if host disconnected
-      if (gameState.hostDisconnected) {
-        alert('Your opponent has left the game.');
-        cleanupMultiplayerSession();
-        return;
-      }
+      // Clear all game state first
+      setP1Roster(Array(6).fill(null));
+      setP2Roster(Array(6).fill(null));
+      setPickIndex(0);
+      setGameFinished(false);
+      setUsedTeams([]);
+      setP1SkipUsed(false);
+      setP2SkipUsed(false);
+      setP1MoveUsed(false);
+      setP2MoveUsed(false);
+      setSpinResult(null);
+      setSelectedPosition(null);
+      setDraftInput("");
       
-      syncGameState(gameState);
-    });
-    
-    return unsubscribe;
+      setIsOnlineMode(true);
+      setPlayerRole('guest');
+      setMultiplayerGameId(gameId);
+      setGameStarted(true);
+      
+      // Subscribe to game updates
+      const unsubscribe = subscribeToGame(gameId, (gameState) => {
+        if (!gameState) {
+          // Game was deleted
+          alert('Game has ended or was deleted.');
+          cleanupMultiplayerSession();
+          return;
+        }
+        
+        // Check if host disconnected
+        if (gameState.hostDisconnected) {
+          alert('Your opponent has left the game.');
+          cleanupMultiplayerSession();
+          return;
+        }
+        
+        syncGameState(gameState);
+      });
+      
+      return unsubscribe;
     } catch (error) {
       console.error('Error joining game:', error);
       alert('Failed to join game. Please try again.');
