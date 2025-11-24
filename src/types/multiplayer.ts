@@ -4,6 +4,9 @@ export interface MultiplayerGameState {
   gameId: string;
   hostId: string;
   guestId: string | null;
+  hostName?: string;
+  guestName?: string;
+  firstPlayer: 1 | 2;
   gameStarted: boolean;
   pickIndex: number;
   p1Roster: Roster;

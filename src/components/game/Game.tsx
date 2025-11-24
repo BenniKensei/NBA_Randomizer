@@ -29,6 +29,9 @@ export default function Game() {
   const [playerId] = useState(() => generatePlayerId());
   const [isWaitingForPlayer, setIsWaitingForPlayer] = useState(false);
   const [playerRole, setPlayerRole] = useState<'host' | 'guest' | null>(null);
+  const [hostName, setHostName] = useState<string>('Player 1');
+  const [guestName, setGuestName] = useState<string>('Player 2');
+  const [firstPlayer, setFirstPlayer] = useState<1 | 2>(1);
   
   // Refs to prevent sync loops
   const lastSyncedActionId = useRef<string | null>(null);
@@ -109,22 +112,7 @@ export default function Game() {
     }
   }, []);
 
-  // Check URL for game ID and auto-join
-  useEffect(() => {
-    const checkUrlForGameId = async () => {
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams(window.location.search);
-        const gameId = params.get('game');
-        
-        if (gameId && !multiplayerGameId && !isOnlineMode) {
-          console.log('Auto-joining game from URL:', gameId);
-          await joinOnlineGame(gameId);
-        }
-      }
-    };
-    
-    checkUrlForGameId();
-  }, [multiplayerGameId, isOnlineMode]);
+  // URL auto-join removed - players must use game code to join with proper names
 
   // Save game state to localStorage (only for local mode)
   useEffect(() => {
@@ -180,7 +168,7 @@ export default function Game() {
   };
 
   // Multiplayer Functions
-  const createOnlineGame = async () => {
+  const createOnlineGame = async (playerName: string) => {
     // If creating a new online game while in another online game, disconnect from the old one
     if (isOnlineMode && multiplayerGameId && playerRole) {
       await markPlayerDisconnected(multiplayerGameId, playerRole);
@@ -189,11 +177,12 @@ export default function Game() {
     // Clear localStorage for online mode
     localStorage.removeItem('nba-draft-game');
     
-    // Clear all game state first
+    // Reset all states completely
+    setGameStarted(false);
+    setGameFinished(false);
     setP1Roster(Array(6).fill(null));
     setP2Roster(Array(6).fill(null));
     setPickIndex(0);
-    setGameFinished(false);
     setUsedTeams([]);
     setP1SkipUsed(false);
     setP2SkipUsed(false);
@@ -202,19 +191,22 @@ export default function Game() {
     setSpinResult(null);
     setSelectedPosition(null);
     setDraftInput("");
+    setSelectedPlayerToMove(null);
+    setHostName(playerName);
+    setGuestName('Player 2');
     
     setIsOnlineMode(true);
     setPlayerRole('host');
+    setIsWaitingForPlayer(true);
     
     const gameId = await createMultiplayerGame(playerId, {
       activeEras,
       noDuplicatesMode,
       skipEnabled,
       moveEnabled
-    });
+    }, playerName);
     
     setMultiplayerGameId(gameId);
-    setIsWaitingForPlayer(true);
     
     // Subscribe to game updates
     const unsubscribe = subscribeToGame(gameId, (gameState) => {
@@ -245,7 +237,7 @@ export default function Game() {
     return unsubscribe;
   };
 
-  const joinOnlineGame = async (gameId: string) => {
+  const joinOnlineGame = async (gameId: string, playerName: string) => {
     try {
       console.log('Attempting to join game:', gameId);
       
@@ -254,7 +246,7 @@ export default function Game() {
         await markPlayerDisconnected(multiplayerGameId, playerRole);
       }
       
-      const success = await joinMultiplayerGame(gameId, playerId);
+      const success = await joinMultiplayerGame(gameId, playerId, playerName);
       
       if (!success) {
         console.error('Failed to join game:', gameId);
@@ -267,11 +259,12 @@ export default function Game() {
       // Clear localStorage for online mode
       localStorage.removeItem('nba-draft-game');
       
-      // Clear all game state first
+      // Reset all states completely
+      setGameStarted(true);
+      setGameFinished(false);
       setP1Roster(Array(6).fill(null));
       setP2Roster(Array(6).fill(null));
       setPickIndex(0);
-      setGameFinished(false);
       setUsedTeams([]);
       setP1SkipUsed(false);
       setP2SkipUsed(false);
@@ -280,11 +273,14 @@ export default function Game() {
       setSpinResult(null);
       setSelectedPosition(null);
       setDraftInput("");
+      setSelectedPlayerToMove(null);
+      setIsWaitingForPlayer(false);
+      setGuestName(playerName);
+      setHostName('Player 1');
       
       setIsOnlineMode(true);
       setPlayerRole('guest');
       setMultiplayerGameId(gameId);
-      setGameStarted(true);
       
       // Subscribe to game updates
       const unsubscribe = subscribeToGame(gameId, (gameState) => {
@@ -330,6 +326,11 @@ export default function Game() {
     
     // Mark this action as received
     lastReceivedActionId.current = gameState.lastActionId;
+    
+    // Sync player names if available
+    if (gameState.hostName) setHostName(gameState.hostName);
+    if (gameState.guestName) setGuestName(gameState.guestName);
+    if (gameState.firstPlayer) setFirstPlayer(gameState.firstPlayer);
     
     // Always sync rosters from Firebase (the source of truth)
     const newP1Roster = Array.isArray(gameState.p1Roster) ? gameState.p1Roster : Array(6).fill(null);
@@ -426,6 +427,13 @@ export default function Game() {
     setP1MoveUsed(false);
     setP2MoveUsed(false);
     setGameFinished(false);
+    setUsedTeams([]);
+    setSpinResult(null);
+    setSelectedPosition(null);
+    setDraftInput("");
+    setSelectedPlayerToMove(null);
+    setHostName('Player 1');
+    setGuestName('Player 2');
   };
 
   const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>, callback: () => void) => {
@@ -438,7 +446,12 @@ export default function Game() {
     if (isOnlineMode) {
       // In online mode, this is a rematch - clear rosters but keep connection
       if (window.confirm('Request a rematch? Both players\' rosters will be cleared.')) {
-        setPickIndex(0);
+        // Alternate starting player for rematch
+        const newFirstPlayer = firstPlayer === 1 ? 2 : 1;
+        const newPickIndex = newFirstPlayer === 1 ? 0 : 1;
+        
+        setFirstPlayer(newFirstPlayer);
+        setPickIndex(newPickIndex);
         setP1Roster(Array(6).fill(null));
         setP2Roster(Array(6).fill(null));
         setGameFinished(false);
@@ -455,7 +468,8 @@ export default function Game() {
         
         // Sync cleared state to Firebase immediately
         syncToFirebase({
-          pickIndex: 0,
+          firstPlayer: newFirstPlayer,
+          pickIndex: newPickIndex,
           p1Roster: Array(6).fill(null),
           p2Roster: Array(6).fill(null),
           gameFinished: false,
@@ -711,7 +725,8 @@ export default function Game() {
   // Render Views
   if (!gameStarted) {
     const hasStartedDraft = !gameFinished && (pickIndex > 0 || p1Roster.some(p => p !== null) || p2Roster.some(p => p !== null));
-    const multiplayerUrl = multiplayerGameId ? `https://nba-randomizer.vercel.app?game=${multiplayerGameId}` : undefined;
+    // Generate URL format for consistency, but UI will only show the game code
+    const multiplayerUrl = multiplayerGameId ? `?game=${multiplayerGameId}` : undefined;
     const hasActiveOnlineGame = isOnlineMode && multiplayerGameId !== null;
     
     return (
@@ -792,6 +807,9 @@ export default function Game() {
                 setSelectedPlayerToMove={setSelectedPlayerToMove}
                 currentPlayer={currentPlayer}
                 moveEnabled={moveEnabled}
+                isOnlineMode={isOnlineMode}
+                myPlayerNumber={myPlayerNumber}
+                playerName={hostName}
               />
             </Card>
             
@@ -855,7 +873,7 @@ export default function Game() {
             {/* Mobile View Rosters */}
             <div className="lg:hidden grid grid-cols-2 gap-4">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg border-2 border-blue-200 shadow-md">
-                <div className="text-center font-bold text-blue-800 text-sm mb-2">Player 1</div>
+                <div className="text-center font-bold text-blue-800 text-sm mb-2">{hostName}</div>
                 {Array.isArray(p1Roster) && p1Roster.map((p, i) => (
                   <div 
                     key={i} 
@@ -868,7 +886,7 @@ export default function Game() {
                 ))}
               </div>
               <div className="bg-gradient-to-br from-red-50 to-red-100 p-3 rounded-lg border-2 border-red-200 shadow-md">
-                <div className="text-center font-bold text-red-800 text-sm mb-2">Player 2</div>
+                <div className="text-center font-bold text-red-800 text-sm mb-2">{guestName}</div>
                 {Array.isArray(p2Roster) && p2Roster.map((p, i) => (
                   <div 
                     key={i} 
@@ -899,6 +917,9 @@ export default function Game() {
                 setSelectedPlayerToMove={setSelectedPlayerToMove}
                 currentPlayer={currentPlayer}
                 moveEnabled={moveEnabled}
+                isOnlineMode={isOnlineMode}
+                myPlayerNumber={myPlayerNumber}
+                playerName={guestName}
               />
             </Card>
             

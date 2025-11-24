@@ -52,7 +52,8 @@ export const createMultiplayerGame = async (
     noDuplicatesMode: boolean;
     skipEnabled: boolean;
     moveEnabled: boolean;
-  }
+  },
+  hostName?: string
 ): Promise<string> => {
   const gameId = generateGameId();
   const gameRef = ref(database, `games/${gameId}`);
@@ -64,6 +65,8 @@ export const createMultiplayerGame = async (
     gameId,
     hostId,
     guestId: null,
+    hostName,
+    firstPlayer: 1, // Host always goes first in the first game
     gameStarted: false,
     pickIndex: 0,
     p1Roster: Array(6).fill(null),
@@ -100,7 +103,8 @@ export const createMultiplayerGame = async (
 // Join an existing multiplayer game
 export const joinMultiplayerGame = async (
   gameId: string,
-  guestId: string
+  guestId: string,
+  guestName?: string
 ): Promise<boolean> => {
   const gameRef = ref(database, `games/${gameId}`);
   
@@ -126,6 +130,7 @@ export const joinMultiplayerGame = async (
     console.log('Joining game with update...');
     await update(gameRef, {
       guestId,
+      guestName,
       gameStarted: true,
       lastUpdated: Date.now(),
       lastActionId: generateActionId()

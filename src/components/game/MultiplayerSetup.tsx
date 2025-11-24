@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/Button';
 import { Users, Copy, Check } from 'lucide-react';
 
 interface MultiplayerSetupProps {
-  onCreateGame: () => void;
-  onJoinGame: (gameId: string) => void;
+  onCreateGame: (playerName: string) => void;
+  onJoinGame: (gameId: string, playerName: string) => void;
   gameUrl?: string;
   isWaitingForPlayer?: boolean;
 }
@@ -16,68 +16,64 @@ export function MultiplayerSetup({
   isWaitingForPlayer 
 }: MultiplayerSetupProps) {
   const [joinCode, setJoinCode] = useState('');
+  const [playerName, setPlayerName] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const handleCopyLink = () => {
-    if (gameUrl) {
-      // Fallback method that works in all browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = gameUrl;
-      textArea.style.position = 'fixed';
-      textArea.style.top = '0';
-      textArea.style.left = '0';
-      textArea.style.opacity = '0';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
-      }
-      
-      document.body.removeChild(textArea);
+  const handleJoin = () => {
+    if (joinCode.trim().length === 6 && playerName.trim()) {
+      onJoinGame(joinCode.trim().toUpperCase(), playerName.trim());
     }
   };
 
-  const handleJoin = () => {
-    if (joinCode.trim().length === 6) {
-      onJoinGame(joinCode.trim().toUpperCase());
+  const handleCopyCode = (code: string) => {
+    // Fallback method that works in all browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = code;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
+    
+    document.body.removeChild(textArea);
   };
 
   if (isWaitingForPlayer && gameUrl) {
+    const gameCode = gameUrl.split('game=')[1];
+    
     return (
       <div className="bg-slate-800 rounded-xl p-6 border-2 border-slate-700">
         <div className="text-center mb-6">
           <Users className="w-12 h-12 text-orange-500 mx-auto mb-3" />
           <h3 className="text-xl font-bold text-white mb-2">Waiting for Player 2...</h3>
-          <p className="text-slate-400 text-sm">Share this link with your friend</p>
+          <p className="text-slate-400 text-sm">Share this code with your friend</p>
         </div>
         
-        <div className="bg-slate-900 rounded-lg p-4 mb-4">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={gameUrl}
-              readOnly
-              className="flex-1 bg-slate-800 text-white px-3 py-2 rounded border border-slate-600 text-sm"
-            />
+        <div className="bg-slate-900 rounded-lg p-6 mb-4">
+          <p className="text-slate-400 text-xs text-center mb-2">Game Code</p>
+          <div className="flex items-center justify-center gap-3">
+            <span className="font-bold text-orange-500 text-4xl tracking-widest font-mono">{gameCode}</span>
             <Button
-              onClick={handleCopyLink}
+              onClick={() => handleCopyCode(gameCode)}
               className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 px-4"
             >
               {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? 'Copied!' : 'Copy'}
             </Button>
           </div>
         </div>
         
-        <p className="text-slate-500 text-xs text-center">
-          Game Code: <span className="font-bold text-orange-500 text-lg">{gameUrl.split('game=')[1]}</span>
+        <p className="text-slate-400 text-xs text-center">
+          Player 2 should enter this code on the join screen
         </p>
       </div>
     );
@@ -92,15 +88,32 @@ export function MultiplayerSetup({
         </h3>
         
         <div className="space-y-4">
+          {/* Single Name Input at the top */}
+          <div>
+            <label className="block text-slate-300 text-sm font-bold mb-2">
+              Your Name
+            </label>
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="Enter your name"
+              maxLength={20}
+              className="w-full bg-slate-900 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-orange-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Create Game Button */}
           <div>
             <Button
-              onClick={onCreateGame}
-              className="w-full py-4 text-lg bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+              onClick={() => onCreateGame(playerName.trim())}
+              disabled={!playerName.trim()}
+              className="w-full py-4 text-lg bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:bg-slate-600 disabled:cursor-not-allowed"
             >
               Create Online Game
             </Button>
             <p className="text-slate-400 text-xs mt-2 text-center">
-              Create a game and share the link with a friend
+              Create a game and share the code with a friend
             </p>
           </div>
           
@@ -113,6 +126,7 @@ export function MultiplayerSetup({
             </div>
           </div>
           
+          {/* Join Game Section */}
           <div>
             <label className="block text-slate-300 text-sm font-bold mb-2">
               Join Game Code
@@ -128,7 +142,7 @@ export function MultiplayerSetup({
               />
               <Button
                 onClick={handleJoin}
-                disabled={joinCode.length !== 6}
+                disabled={joinCode.length !== 6 || !playerName.trim()}
                 className="px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed"
               >
                 Join

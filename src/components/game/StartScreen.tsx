@@ -9,8 +9,8 @@ interface StartScreenProps {
   onStart: (selectedEras: string[], noDuplicates: boolean, skipEnabled: boolean, moveEnabled: boolean) => void;
   hasStartedDraft?: boolean;
   onContinue?: () => void;
-  onCreateOnlineGame?: () => void;
-  onJoinOnlineGame?: (gameId: string) => void;
+  onCreateOnlineGame?: (playerName: string) => void;
+  onJoinOnlineGame?: (gameId: string, playerName: string) => void;
   multiplayerGameUrl?: string;
   isWaitingForPlayer?: boolean;
   hasActiveOnlineGame?: boolean;
@@ -66,19 +66,19 @@ export function StartScreen({
     onStart(selectedEras, noDuplicates, skipEnabled, moveEnabled);
   };
 
-  const handleCreateOnlineGame = () => {
+  const handleCreateOnlineGame = (playerName: string) => {
     if (selectedEras.length === 0) {
       alert('Please select at least one era!');
       return;
     }
     if (onCreateOnlineGame) {
-      onCreateOnlineGame();
+      onCreateOnlineGame(playerName);
     }
   };
 
-  const handleJoinOnlineGame = (gameId: string) => {
+  const handleJoinOnlineGame = (gameId: string, playerName: string) => {
     if (onJoinOnlineGame) {
-      onJoinOnlineGame(gameId);
+      onJoinOnlineGame(gameId, playerName);
     }
   };
 
@@ -197,7 +197,7 @@ export function StartScreen({
         )}
 
         {/* Show multiplayer setup for online mode */}
-        {gameMode === 'online' && (isWaitingForPlayer || !hasStartedDraft) && (
+        {gameMode === 'online' && !isWaitingForPlayer && (
           <>
             {!showSettings && (
               <MultiplayerSetup
@@ -208,6 +208,16 @@ export function StartScreen({
               />
             )}
           </>
+        )}
+        
+        {/* Show waiting screen when waiting for player */}
+        {gameMode === 'online' && isWaitingForPlayer && (
+          <MultiplayerSetup
+            onCreateGame={handleCreateOnlineGame}
+            onJoinGame={handleJoinOnlineGame}
+            gameUrl={multiplayerGameUrl}
+            isWaitingForPlayer={isWaitingForPlayer}
+          />
         )}
         
         {/* Settings Button - only show for local mode or when configuring online game */}

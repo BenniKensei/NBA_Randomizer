@@ -15,6 +15,9 @@ interface RosterDisplayProps {
   setSelectedPlayerToMove: (index: number | null) => void;
   currentPlayer: 1 | 2;
   moveEnabled: boolean;
+  isOnlineMode?: boolean;
+  myPlayerNumber?: number | null;
+  playerName?: string;
 }
 
 export const RosterDisplay: React.FC<RosterDisplayProps> = ({
@@ -28,12 +31,18 @@ export const RosterDisplay: React.FC<RosterDisplayProps> = ({
   selectedPlayerToMove,
   setSelectedPlayerToMove,
   currentPlayer,
-  moveEnabled
+  moveEnabled,
+  isOnlineMode = false,
+  myPlayerNumber = null,
+  playerName
 }) => {
   const isPlayerTurn = !gameFinished && gameStarted && currentPlayer === playerNum;
   
+  // In online mode, only allow moving your own roster
+  const isMyRoster = isOnlineMode ? playerNum === myPlayerNumber : true;
+  
   const handleSlotClick = (idx: number) => {
-    if (!moveEnabled || moveUsed || playerNum !== currentPlayer || gameFinished) return;
+    if (!moveEnabled || moveUsed || !isMyRoster || playerNum !== currentPlayer || gameFinished) return;
     
     const player = roster[idx];
     
@@ -55,7 +64,7 @@ export const RosterDisplay: React.FC<RosterDisplayProps> = ({
   return (
     <div className="flex flex-col gap-2">
       <h3 className={`text-xl font-bold mb-2 flex items-center gap-2 ${playerNum === 1 ? 'text-blue-600' : 'text-red-600'}`}>
-        <User size={24} /> Player {playerNum}
+        <User size={24} /> {playerName || `Player ${playerNum}`}
         {isPlayerTurn && (
           <span className="text-xs bg-orange-400 text-orange-900 px-2 py-1 rounded-full font-bold animate-pulse">
             Drafting...
@@ -64,10 +73,10 @@ export const RosterDisplay: React.FC<RosterDisplayProps> = ({
       </h3>
       {POSITIONS.map((pos, idx) => {
         const player = roster[idx];
-        const isSelected = selectedPlayerToMove === idx && playerNum === currentPlayer;
-        const canMove = moveEnabled && !moveUsed && playerNum === currentPlayer && !gameFinished;
+        const isSelected = selectedPlayerToMove === idx && playerNum === currentPlayer && isMyRoster;
+        const canMove = moveEnabled && !moveUsed && playerNum === currentPlayer && !gameFinished && isMyRoster;
         const isMovable = canMove && player && selectedPlayerToMove === null;
-        const isMoveTarget = canMove && selectedPlayerToMove !== null && !player && selectedPlayerToMove !== idx && playerNum === currentPlayer;
+        const isMoveTarget = canMove && selectedPlayerToMove !== null && !player && selectedPlayerToMove !== idx;
         
         // For 6th Man position, show only the decade (remove parentheses content)
         const displayEra = player && idx === 5 ? player.era.split(' ')[0] : player?.era;
