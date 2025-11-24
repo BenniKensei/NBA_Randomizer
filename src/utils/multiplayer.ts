@@ -58,6 +58,8 @@ export const createMultiplayerGame = async (
   const gameRef = ref(database, `games/${gameId}`);
   const now = Date.now();
   
+  console.log('Creating game with ID:', gameId);
+  
   const initialState: MultiplayerGameState = {
     gameId,
     hostId,
@@ -83,7 +85,14 @@ export const createMultiplayerGame = async (
     lastActionId: generateActionId()
   };
   
-  await set(gameRef, initialState);
+  console.log('Writing game to Firebase:', initialState);
+  try {
+    await set(gameRef, initialState);
+    console.log('Game created successfully:', gameId);
+  } catch (error) {
+    console.error('Error creating game in Firebase:', error);
+    throw error;
+  }
   
   return gameId;
 };
