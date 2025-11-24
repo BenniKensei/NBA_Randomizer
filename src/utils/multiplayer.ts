@@ -96,17 +96,37 @@ export const joinMultiplayerGame = async (
   const gameRef = ref(database, `games/${gameId}`);
   
   try {
+    console.log('Attempting to join game:', gameId, 'as guest:', guestId);
+    
+    // First check if game exists
+    const snapshot = await get(gameRef);
+    if (!snapshot.exists()) {
+      console.error('Game does not exist:', gameId);
+      return false;
+    }
+    
+    const gameData = snapshot.val();
+    console.log('Found game data:', gameData);
+    
+    if (gameData.guestId) {
+      console.error('Game is already full:', gameId);
+      return false;
+    }
+    
     // Use transaction to prevent race conditions
     const result = await runTransaction(gameRef, (currentData) => {
       if (!currentData) {
+        console.log('Transaction: game no longer exists');
         return; // Abort - game doesn't exist
       }
       
       // Check if game is already full
       if (currentData.guestId) {
+        console.log('Transaction: game is full');
         return; // Abort - game is full
       }
       
+      console.log('Transaction: joining game');
       // Add guest player
       return {
         ...currentData,
@@ -116,6 +136,8 @@ export const joinMultiplayerGame = async (
         lastActionId: generateActionId()
       };
     });
+    
+    console.log('Transaction result:', result.committed);
     
     if (!result.committed) {
       return false;
