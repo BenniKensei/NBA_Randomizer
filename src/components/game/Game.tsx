@@ -66,25 +66,10 @@ export default function Game() {
   const picksPerPlayer = Math.floor(pickIndex / 2) + (pickIndex % 2);
   const currentRoster = currentPlayer === 1 ? p1Roster : p2Roster;
   
-  console.log('=== ROSTER DEBUG ===');
-  console.log('pickIndex:', pickIndex);
-  console.log('currentPlayer:', currentPlayer);
-  console.log('p1Roster:', p1Roster);
-  console.log('p2Roster:', p2Roster);
-  console.log('currentRoster:', currentRoster);
-  console.log('currentRoster isArray:', Array.isArray(currentRoster));
-  
   // Firebase converts null to undefined in arrays, so check for both
   const availablePositions = (currentRoster && Array.isArray(currentRoster)) 
-    ? POSITIONS.filter((_, idx) => {
-        const isAvailable = currentRoster[idx] === null || currentRoster[idx] === undefined;
-        console.log(`Position ${idx} (${POSITIONS[idx]}): ${isAvailable ? 'available' : 'filled'}`, currentRoster[idx]);
-        return isAvailable;
-      })
+    ? POSITIONS.filter((_, idx) => currentRoster[idx] === null || currentRoster[idx] === undefined)
     : POSITIONS;
-  
-  console.log('availablePositions:', availablePositions);
-  console.log('===================');
   
   // In online mode, determine if it's this player's turn
   const myPlayerNumber = isOnlineMode ? (playerRole === 'host' ? 1 : 2) : null;
@@ -239,8 +224,6 @@ export default function Game() {
 
   const joinOnlineGame = async (gameId: string, playerName: string) => {
     try {
-      console.log('Attempting to join game:', gameId);
-      
       // If joining a new online game while in another online game, disconnect from the old one
       if (isOnlineMode && multiplayerGameId && playerRole && multiplayerGameId !== gameId) {
         await markPlayerDisconnected(multiplayerGameId, playerRole);
@@ -253,8 +236,6 @@ export default function Game() {
         alert('Could not join game. Game may not exist or is already full.');
         return;
       }
-      
-      console.log('Successfully joined game:', gameId);
     
       // Clear localStorage for online mode
       localStorage.removeItem('nba-draft-game');
@@ -311,18 +292,13 @@ export default function Game() {
   const syncGameState = (gameState: MultiplayerGameState) => {
     // Prevent sync loops - don't apply updates we just sent
     if (gameState.lastActionId === lastSyncedActionId.current) {
-      console.log('Skipping sync - this is our own update');
       return;
     }
     
     // Prevent duplicate processing
     if (gameState.lastActionId === lastReceivedActionId.current) {
-      console.log('Skipping sync - already processed this update');
       return;
     }
-    
-    console.log('Received from Firebase:', gameState);
-    console.log('Current local state:', { p1Roster, p2Roster, pickIndex });
     
     // Mark this action as received
     lastReceivedActionId.current = gameState.lastActionId;
@@ -335,9 +311,6 @@ export default function Game() {
     // Always sync rosters from Firebase (the source of truth)
     const newP1Roster = Array.isArray(gameState.p1Roster) ? gameState.p1Roster : Array(6).fill(null);
     const newP2Roster = Array.isArray(gameState.p2Roster) ? gameState.p2Roster : Array(6).fill(null);
-    
-    console.log('Setting P1 roster:', newP1Roster);
-    console.log('Setting P2 roster:', newP2Roster);
     
     setP1Roster(newP1Roster);
     setP2Roster(newP2Roster);
@@ -375,8 +348,6 @@ export default function Game() {
       const actionId = generateActionId();
       lastSyncedActionId.current = actionId;
       
-      console.log('Syncing to Firebase:', updates, 'actionId:', actionId);
-      
       // Update with transaction to prevent race conditions
       const success = await updateGameState(
         multiplayerGameId,
@@ -385,8 +356,7 @@ export default function Game() {
       );
       
       if (!success) {
-        console.warn('Firebase update failed or conflicted');
-        // The subscription will deliver the winning state
+        // Firebase update failed or conflicted - subscription will deliver the winning state
       }
     } catch (error) {
       console.error('Error syncing to Firebase:', error);

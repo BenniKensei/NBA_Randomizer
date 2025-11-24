@@ -59,8 +59,6 @@ export const createMultiplayerGame = async (
   const gameRef = ref(database, `games/${gameId}`);
   const now = Date.now();
   
-  console.log('Creating game with ID:', gameId);
-  
   const initialState: MultiplayerGameState = {
     gameId,
     hostId,
@@ -88,10 +86,8 @@ export const createMultiplayerGame = async (
     lastActionId: generateActionId()
   };
   
-  console.log('Writing game to Firebase:', initialState);
   try {
     await set(gameRef, initialState);
-    console.log('Game created successfully:', gameId);
   } catch (error) {
     console.error('Error creating game in Firebase:', error);
     throw error;
@@ -109,8 +105,6 @@ export const joinMultiplayerGame = async (
   const gameRef = ref(database, `games/${gameId}`);
   
   try {
-    console.log('Attempting to join game:', gameId, 'as guest:', guestId);
-    
     // First check if game exists
     const snapshot = await get(gameRef);
     if (!snapshot.exists()) {
@@ -119,7 +113,6 @@ export const joinMultiplayerGame = async (
     }
     
     const gameData = snapshot.val();
-    console.log('Found game data:', gameData);
     
     if (gameData.guestId) {
       console.error('Game is already full:', gameId);
@@ -127,7 +120,6 @@ export const joinMultiplayerGame = async (
     }
     
     // Use simple update instead of transaction for better reliability
-    console.log('Joining game with update...');
     await update(gameRef, {
       guestId,
       guestName,
@@ -136,7 +128,6 @@ export const joinMultiplayerGame = async (
       lastActionId: generateActionId()
     });
     
-    console.log('Successfully joined game!');
     return true;
   } catch (error) {
     console.error('Error joining game:', error);
