@@ -1,4 +1,4 @@
-import { ref, set, onValue, update, get, remove } from 'firebase/database';
+import { ref, set, onValue, update, get, remove, runTransaction, onDisconnect } from 'firebase/database';
 import { database } from '@/lib/firebase';
 import { MultiplayerGameState } from '@/types/multiplayer';
 import { Roster } from '@/types';
@@ -13,6 +13,37 @@ export const generatePlayerId = (): string => {
   return Math.random().toString(36).substring(2, 15);
 };
 
+// Generate a unique action ID for deduplication
+export const generateActionId = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+};
+
+// Normalize roster arrays to handle Firebase null/undefined issues
+const normalizeRoster = (roster: any): Roster => {
+  if (!roster || typeof roster !== 'object') {
+    return Array(6).fill(null);
+  }
+  
+  // If it's an array-like object from Firebase
+  if (!Array.isArray(roster)) {
+    const arr = Array(6).fill(null);
+    Object.keys(roster).forEach(key => {
+      const index = parseInt(key);
+      if (!isNaN(index) && index >= 0 && index < 6) {
+        arr[index] = roster[key] || null;
+      }
+    });
+    return arr;
+  }
+  
+  // Ensure it's exactly 6 elements and null instead of undefined
+  const normalized = Array(6).fill(null);
+  for (let i = 0; i < 6; i++) {
+    normalized[i] = roster[i] || null;
+  }
+  return normalized;
+};
+
 // Create a new multiplayer game
 export const createMultiplayerGame = async (
   hostId: string,
@@ -25,6 +56,7 @@ export const createMultiplayerGame = async (
 ): Promise<string> => {
   const gameId = generateGameId();
   const gameRef = ref(database, `games/${gameId}`);
+  const now = Date.now();
   
   const initialState: MultiplayerGameState = {
     gameId,
@@ -46,10 +78,17 @@ export const createMultiplayerGame = async (
     moveEnabled: gameSettings.moveEnabled,
     spinResult: null,
     selectedPosition: null,
-    createdAt: Date.now()
+    createdAt: now,
+    lastUpdated: now,
+    lastActionId: generateActionId()
   };
   
   await set(gameRef, initialState);
+  
+  // Setup disconnect handler
+  const hostDisconnectRef = ref(database, `games/${gameId}/hostDisconnected`);
+  await onDisconnect(hostDisconnectRef).set(true);
+  
   return gameId;
 };
 
@@ -61,23 +100,34 @@ export const joinMultiplayerGame = async (
   const gameRef = ref(database, `games/${gameId}`);
   
   try {
-    const snapshot = await get(gameRef);
-    if (!snapshot.exists()) {
-      return false;
-    }
-    
-    const gameData = snapshot.val() as MultiplayerGameState;
-    
-    // Check if game is already full
-    if (gameData.guestId) {
-      return false;
-    }
-    
-    // Add guest player
-    await update(gameRef, {
-      guestId,
-      gameStarted: true
+    // Use transaction to prevent race conditions
+    const result = await runTransaction(gameRef, (currentData) => {
+      if (!currentData) {
+        return; // Abort - game doesn't exist
+      }
+      
+      // Check if game is already full
+      if (currentData.guestId) {
+        return; // Abort - game is full
+      }
+      
+      // Add guest player
+      return {
+        ...currentData,
+        guestId,
+        gameStarted: true,
+        lastUpdated: Date.now(),
+        lastActionId: generateActionId()
+      };
     });
+    
+    if (!result.committed) {
+      return false;
+    }
+    
+    // Setup disconnect handler
+    const guestDisconnectRef = ref(database, `games/${gameId}/guestDisconnected`);
+    await onDisconnect(guestDisconnectRef).set(true);
     
     return true;
   } catch (error) {
@@ -95,7 +145,15 @@ export const subscribeToGame = (
   
   const unsubscribe = onValue(gameRef, (snapshot) => {
     if (snapshot.exists()) {
-      callback(snapshot.val() as MultiplayerGameState);
+      const rawData = snapshot.val();
+      // Normalize rosters to handle Firebase null/undefined conversion
+      const normalizedData: MultiplayerGameState = {
+        ...rawData,
+        p1Roster: normalizeRoster(rawData.p1Roster),
+        p2Roster: normalizeRoster(rawData.p2Roster),
+        usedTeams: Array.isArray(rawData.usedTeams) ? rawData.usedTeams : []
+      };
+      callback(normalizedData);
     } else {
       callback(null);
     }
@@ -115,13 +173,40 @@ export const markPlayerDisconnected = async (
   });
 };
 
-// Update game state
+// Update game state with transaction to prevent race conditions
 export const updateGameState = async (
   gameId: string,
-  updates: Partial<MultiplayerGameState>
-): Promise<void> => {
+  updates: Partial<MultiplayerGameState>,
+  expectedActionId?: string
+): Promise<boolean> => {
   const gameRef = ref(database, `games/${gameId}`);
-  await update(gameRef, updates);
+  
+  try {
+    const result = await runTransaction(gameRef, (currentData) => {
+      if (!currentData) {
+        return; // Abort - game doesn't exist
+      }
+      
+      // If expectedActionId is provided, check for conflicts
+      if (expectedActionId && currentData.lastActionId !== expectedActionId) {
+        console.warn('Action conflict detected, aborting update');
+        return; // Abort - someone else updated first
+      }
+      
+      // Apply updates with new timestamp and action ID
+      return {
+        ...currentData,
+        ...updates,
+        lastUpdated: Date.now(),
+        lastActionId: generateActionId()
+      };
+    });
+    
+    return result.committed;
+  } catch (error) {
+    console.error('Error updating game state:', error);
+    return false;
+  }
 };
 
 // Delete a game

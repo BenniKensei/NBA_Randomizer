@@ -17,6 +17,7 @@ import {
   subscribeToGame,
   updateGameState,
   generatePlayerId,
+  generateActionId,
   markPlayerDisconnected
 } from '@/utils/multiplayer';
 import { MultiplayerGameState } from '@/types/multiplayer';
@@ -28,6 +29,11 @@ export default function Game() {
   const [playerId] = useState(() => generatePlayerId());
   const [isWaitingForPlayer, setIsWaitingForPlayer] = useState(false);
   const [playerRole, setPlayerRole] = useState<'host' | 'guest' | null>(null);
+  
+  // Refs to prevent sync loops
+  const lastSyncedActionId = useRef<string | null>(null);
+  const lastReceivedActionId = useRef<string | null>(null);
+  const isSyncingRef = useRef(false);
   
   // Game State
   const [gameStarted, setGameStarted] = useState(false);
@@ -292,8 +298,23 @@ export default function Game() {
   };
 
   const syncGameState = (gameState: MultiplayerGameState) => {
+    // Prevent sync loops - don't apply updates we just sent
+    if (gameState.lastActionId === lastSyncedActionId.current) {
+      console.log('Skipping sync - this is our own update');
+      return;
+    }
+    
+    // Prevent duplicate processing
+    if (gameState.lastActionId === lastReceivedActionId.current) {
+      console.log('Skipping sync - already processed this update');
+      return;
+    }
+    
     console.log('Received from Firebase:', gameState);
     console.log('Current local state:', { p1Roster, p2Roster, pickIndex });
+    
+    // Mark this action as received
+    lastReceivedActionId.current = gameState.lastActionId;
     
     // Always sync rosters from Firebase (the source of truth)
     const newP1Roster = Array.isArray(gameState.p1Roster) ? gameState.p1Roster : Array(6).fill(null);
@@ -328,41 +349,35 @@ export default function Game() {
     setSelectedPosition(gameState.selectedPosition || null);
   };
 
-  const syncToFirebase = async (overrides?: Partial<MultiplayerGameState>) => {
-    if (!isOnlineMode || !multiplayerGameId) return;
+  const syncToFirebase = async (updates: Partial<MultiplayerGameState>) => {
+    if (!isOnlineMode || !multiplayerGameId || isSyncingRef.current) return;
     
-    // Convert spinResult to Firebase format (just team name and era)
-    const spinResultForFirebase = spinResult ? { team: spinResult.team.name, era: spinResult.era } : null;
+    isSyncingRef.current = true;
     
-    const stateToSync = {
-      pickIndex,
-      p1Roster,
-      p2Roster,
-      gameFinished,
-      usedTeams,
-      p1SkipUsed,
-      p2SkipUsed,
-      p1MoveUsed,
-      p2MoveUsed,
-      spinResult: spinResultForFirebase,
-      selectedPosition,
-      ...overrides,
-    };
-    
-    console.log('Syncing to Firebase:', stateToSync);
-    await updateGameState(multiplayerGameId, stateToSync);
-  };
-
-  // Sync to Firebase whenever game state changes in online mode
-  // Only sync after meaningful actions, not on every state change
-  useEffect(() => {
-    if (isOnlineMode && gameStarted && !isWaitingForPlayer && pickIndex > 0) {
-      const timer = setTimeout(() => {
-        syncToFirebase();
-      }, 100); // Debounce to avoid rapid syncs
-      return () => clearTimeout(timer);
+    try {
+      // Generate a new action ID for this update
+      const actionId = generateActionId();
+      lastSyncedActionId.current = actionId;
+      
+      console.log('Syncing to Firebase:', updates, 'actionId:', actionId);
+      
+      // Update with transaction to prevent race conditions
+      const success = await updateGameState(
+        multiplayerGameId,
+        updates,
+        lastReceivedActionId.current || undefined
+      );
+      
+      if (!success) {
+        console.warn('Firebase update failed or conflicted');
+        // The subscription will deliver the winning state
+      }
+    } catch (error) {
+      console.error('Error syncing to Firebase:', error);
+    } finally {
+      isSyncingRef.current = false;
     }
-  }, [pickIndex, gameFinished]); // Only sync when pick is made or game finishes
+  };
 
   const backToMenu = () => {
     // If in online mode, just go back to menu without disconnecting
@@ -422,7 +437,7 @@ export default function Game() {
         setDraftInput('');
         setSelectedPosition(null);
         
-        // Sync cleared state to Firebase
+        // Sync cleared state to Firebase immediately
         syncToFirebase({
           pickIndex: 0,
           p1Roster: Array(6).fill(null),
@@ -546,7 +561,9 @@ export default function Game() {
       setPickIndex(newPickIndex);
     }
     
-    // Sync to Firebase with the new values immediately
+    console.log('After pick - syncing to Firebase:', { newP1Roster, newP2Roster, newPickIndex });
+    
+    // Sync to Firebase immediately with the new values
     if (isOnlineMode) {
       syncToFirebase({
         p1Roster: newP1Roster,
@@ -572,12 +589,25 @@ export default function Game() {
     if (availableTeams.length === 0) return;
     
     const newTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
-    setSpinResult({ ...spinResult, team: newTeam });
+    const newSpinResult = { ...spinResult, team: newTeam };
+    setSpinResult(newSpinResult);
+    
+    const newP1SkipUsed = currentPlayer === 1 ? true : p1SkipUsed;
+    const newP2SkipUsed = currentPlayer === 2 ? true : p2SkipUsed;
     
     if (currentPlayer === 1) {
       setP1SkipUsed(true);
     } else {
       setP2SkipUsed(true);
+    }
+    
+    // Sync to Firebase immediately
+    if (isOnlineMode) {
+      syncToFirebase({
+        spinResult: { team: newTeam.name, era: newSpinResult.era },
+        p1SkipUsed: newP1SkipUsed,
+        p2SkipUsed: newP2SkipUsed,
+      });
     }
   };
 
@@ -590,17 +620,31 @@ export default function Game() {
     if (availableEras.length === 0) return;
     
     const newEra = availableEras[Math.floor(Math.random() * availableEras.length)];
-    setSpinResult({ ...spinResult, era: newEra });
+    const newSpinResult = { ...spinResult, era: newEra };
+    setSpinResult(newSpinResult);
+    
+    const newP1SkipUsed = currentPlayer === 1 ? true : p1SkipUsed;
+    const newP2SkipUsed = currentPlayer === 2 ? true : p2SkipUsed;
     
     if (currentPlayer === 1) {
       setP1SkipUsed(true);
     } else {
       setP2SkipUsed(true);
     }
+    
+    // Sync to Firebase immediately
+    if (isOnlineMode) {
+      syncToFirebase({
+        spinResult: { team: newSpinResult.team.name, era: newEra },
+        p1SkipUsed: newP1SkipUsed,
+        p2SkipUsed: newP2SkipUsed,
+      });
+    }
   };
 
   const handleMovePlayer = (fromIndex: number, toIndex: number) => {
     if (gameFinished) return;
+    if (isOnlineMode && !isMyTurn) return;
     
     const moveUsed = currentPlayer === 1 ? p1MoveUsed : p2MoveUsed;
     if (moveUsed) return;
@@ -617,6 +661,9 @@ export default function Game() {
     newRoster[toIndex] = { ...player, position: POSITIONS[toIndex] };
     newRoster[fromIndex] = null;
 
+    const newP1MoveUsed = currentPlayer === 1 ? true : p1MoveUsed;
+    const newP2MoveUsed = currentPlayer === 2 ? true : p2MoveUsed;
+
     if (currentPlayer === 1) {
       setP1Roster(newRoster);
       setP1MoveUsed(true);
@@ -626,6 +673,16 @@ export default function Game() {
     }
 
     setSelectedPlayerToMove(null);
+    
+    // Sync to Firebase immediately
+    if (isOnlineMode) {
+      syncToFirebase({
+        p1Roster: currentPlayer === 1 ? newRoster : p1Roster,
+        p2Roster: currentPlayer === 2 ? newRoster : p2Roster,
+        p1MoveUsed: newP1MoveUsed,
+        p2MoveUsed: newP2MoveUsed,
+      });
+    }
   };
 
   // Clean up intervals

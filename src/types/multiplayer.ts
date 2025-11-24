@@ -21,6 +21,8 @@ export interface MultiplayerGameState {
   spinResult: { team: string; era: string } | null;
   selectedPosition: string | null;
   createdAt: number;
+  lastUpdated: number;
+  lastActionId: string;
   hostDisconnected?: boolean;
   guestDisconnected?: boolean;
 }

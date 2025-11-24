@@ -1,0 +1,57 @@
+{
+  "rules": {
+    "games": {
+      "$gameId": {
+        ".read": true,
+        ".write": "!data.exists() || (data.child('hostId').val() === auth.uid || data.child('guestId').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['gameId', 'hostId', 'pickIndex', 'p1Roster', 'p2Roster', 'gameFinished', 'lastUpdated', 'lastActionId'])",
+        
+        "gameId": {
+          ".validate": "newData.val() === $gameId"
+        },
+        
+        "hostId": {
+          ".validate": "newData.isString()"
+        },
+        
+        "guestId": {
+          ".validate": "newData.isString() || newData.val() === null"
+        },
+        
+        "pickIndex": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 12"
+        },
+        
+        "gameFinished": {
+          ".validate": "newData.isBoolean()"
+        },
+        
+        "lastUpdated": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        
+        "lastActionId": {
+          ".validate": "newData.isString()"
+        },
+        
+        "p1Roster": {
+          ".validate": "newData.hasChildren() || newData.val() === null",
+          "$index": {
+            ".validate": "($index === '0' || $index === '1' || $index === '2' || $index === '3' || $index === '4' || $index === '5') && (newData.hasChildren(['name', 'team', 'era', 'position']) || newData.val() === null)"
+          }
+        },
+        
+        "p2Roster": {
+          ".validate": "newData.hasChildren() || newData.val() === null",
+          "$index": {
+            ".validate": "($index === '0' || $index === '1' || $index === '2' || $index === '3' || $index === '4' || $index === '5') && (newData.hasChildren(['name', 'team', 'era', 'position']) || newData.val() === null)"
+          }
+        },
+        
+        "$other": {
+          ".validate": true
+        }
+      }
+    }
+  }
+}
