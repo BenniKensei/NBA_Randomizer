@@ -111,15 +111,20 @@ export default function Game() {
 
   // Check URL for game ID and auto-join
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const gameId = params.get('game');
-      
-      if (gameId && !multiplayerGameId) {
-        joinOnlineGame(gameId);
+    const checkUrlForGameId = async () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const gameId = params.get('game');
+        
+        if (gameId && !multiplayerGameId && !isOnlineMode) {
+          console.log('Auto-joining game from URL:', gameId);
+          await joinOnlineGame(gameId);
+        }
       }
-    }
-  }, []);
+    };
+    
+    checkUrlForGameId();
+  }, [multiplayerGameId, isOnlineMode]);
 
   // Save game state to localStorage (only for local mode)
   useEffect(() => {
