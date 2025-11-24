@@ -122,36 +122,16 @@ export const joinMultiplayerGame = async (
       return false;
     }
     
-    // Use transaction to prevent race conditions
-    const result = await runTransaction(gameRef, (currentData) => {
-      if (!currentData) {
-        console.log('Transaction: game no longer exists');
-        return; // Abort - game doesn't exist
-      }
-      
-      // Check if game is already full
-      if (currentData.guestId) {
-        console.log('Transaction: game is full');
-        return; // Abort - game is full
-      }
-      
-      console.log('Transaction: joining game');
-      // Add guest player
-      return {
-        ...currentData,
-        guestId,
-        gameStarted: true,
-        lastUpdated: Date.now(),
-        lastActionId: generateActionId()
-      };
+    // Use simple update instead of transaction for better reliability
+    console.log('Joining game with update...');
+    await update(gameRef, {
+      guestId,
+      gameStarted: true,
+      lastUpdated: Date.now(),
+      lastActionId: generateActionId()
     });
     
-    console.log('Transaction result:', result.committed);
-    
-    if (!result.committed) {
-      return false;
-    }
-    
+    console.log('Successfully joined game!');
     return true;
   } catch (error) {
     console.error('Error joining game:', error);
