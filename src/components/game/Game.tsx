@@ -11,6 +11,8 @@ import { SpinnerCard } from '@/components/game/SpinnerCard';
 import { TEAMS, ERAS, POSITIONS } from '@/constants/gameData';
 import { SpinResult, Player, Roster } from '@/types';
 import { buttonPress } from '@/lib/animations';
+import { validatePlayerTeam, getPlayerByName } from '@/constants/nbaPlayers';
+import { getTeamAbbreviation } from '@/utils/teamMapping';
 import {
   createMultiplayerGame,
   joinMultiplayerGame,
@@ -60,6 +62,7 @@ export default function Game() {
   const [spinResult, setSpinResult] = useState<SpinResult | null>(null);
   const [draftInput, setDraftInput] = useState("");
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Derived State
   const currentPlayer = (pickIndex % 2 === 0 ? 1 : 2) as 1 | 2;
@@ -514,6 +517,37 @@ export default function Game() {
     if (!draftInput.trim() || !spinResult || !selectedPosition) return;
     if (isOnlineMode && !isMyTurn) return;
 
+    // Validate player-team match
+    const teamAbbr = getTeamAbbreviation(spinResult.team.name);
+    const isValid = validatePlayerTeam(draftInput.trim(), teamAbbr);
+    
+    if (!isValid) {
+      const playerExists = getPlayerByName(draftInput.trim());
+      if (!playerExists) {
+        setValidationError(`${draftInput.trim()} is not in the player database. Please select from the dropdown.`);
+      } else {
+        setValidationError(`${draftInput.trim()} did not play for the ${spinResult.team.name}`);
+      }
+      return;
+    }
+    
+    // Check for duplicate players across both rosters
+    const playerNameLower = draftInput.trim().toLowerCase();
+    const isDuplicateInP1 = p1Roster.some(player => 
+      player && player.name.toLowerCase() === playerNameLower
+    );
+    const isDuplicateInP2 = p2Roster.some(player => 
+      player && player.name.toLowerCase() === playerNameLower
+    );
+    
+    if (isDuplicateInP1 || isDuplicateInP2) {
+      setValidationError(`${draftInput.trim()} has already been picked!`);
+      return;
+    }
+    
+    // Clear validation error if any
+    setValidationError(null);
+
     console.log('=== SUBMIT PICK START ===');
     console.log('Before pick - p1Roster:', p1Roster);
     console.log('Before pick - p2Roster:', p2Roster);
@@ -830,7 +864,10 @@ export default function Game() {
               availablePositions={availablePositions}
               draftInput={draftInput}
               onSpin={handleSpin}
-              onInputChange={setDraftInput}
+              onInputChange={(value) => {
+                setDraftInput(value);
+                setValidationError(null); // Clear error when typing
+              }}
               onPositionSelect={setSelectedPosition}
               onSubmit={submitPick}
               onSkipTeam={skipTeam}
@@ -838,6 +875,7 @@ export default function Game() {
               skipUsed={currentPlayer === 1 ? p1SkipUsed : p2SkipUsed}
               skipEnabled={skipEnabled}
               disabled={isOnlineMode && !isMyTurn}
+              validationError={validationError}
             />
 
             {/* Mobile View Rosters */}

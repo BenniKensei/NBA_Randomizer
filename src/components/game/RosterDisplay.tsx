@@ -2,6 +2,8 @@ import React from 'react';
 import { User, MoveRight } from 'lucide-react';
 import { POSITIONS } from '@/constants/gameData';
 import { Roster } from '@/types';
+import { getPlayerByName } from '@/constants/nbaPlayers';
+import { getTeamAbbreviation } from '@/utils/teamMapping';
 
 interface RosterDisplayProps {
   playerNum: 1 | 2;
@@ -81,10 +83,28 @@ export const RosterDisplay: React.FC<RosterDisplayProps> = ({
         // For 6th Man position, show only the decade (remove parentheses content)
         const displayEra = player && idx === 5 ? player.era.split(' ')[0] : player?.era;
         
+        // Get player's team color from database
+        let playerTeamColor: string | null = null;
+        if (player) {
+          try {
+            const teamAbbr = getTeamAbbreviation(player.team);
+            const playerInfo = getPlayerByName(player.name);
+            if (playerInfo && playerInfo.teamHistory && playerInfo.teamHistory.includes(teamAbbr)) {
+              playerTeamColor = playerInfo.teamColor;
+            }
+          } catch (error) {
+            console.warn('Error getting player team color:', error);
+          }
+        }
+        
         return (
           <div 
             key={pos} 
             onClick={() => handleSlotClick(idx)}
+            style={{
+              borderColor: playerTeamColor || undefined,
+              borderWidth: playerTeamColor ? '3px' : undefined,
+            }}
             className={`
               relative p-3 rounded-lg border-2 transition-all
               ${isSelected ? 'ring-4 ring-green-400 border-green-400 bg-green-50' : ''}
@@ -93,7 +113,7 @@ export const RosterDisplay: React.FC<RosterDisplayProps> = ({
               ${player 
                 ? isPlayerTurn && !isSelected
                   ? 'bg-orange-50 border-orange-300 ring-2 ring-orange-200'
-                  : !isSelected && 'bg-white border-slate-200 shadow-sm'
+                  : !isSelected && (playerTeamColor ? 'bg-white shadow-md' : 'bg-white border-slate-200 shadow-sm')
                 : !isMoveTarget && 'bg-slate-50 border-slate-100 text-slate-400'}
             `}
           >
@@ -114,11 +134,21 @@ export const RosterDisplay: React.FC<RosterDisplayProps> = ({
             
             {player ? (
               <div className="mt-1">
-                <div className="font-bold text-slate-800 text-lg leading-tight break-words">
-                  {player.name}
-                  {isSelected && <span className="ml-2 text-green-600 text-sm whitespace-nowrap">✓ Selected</span>}
+                <div className="flex items-center gap-2">
+                  {playerTeamColor && (
+                    <div 
+                      className="w-1 h-14 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: playerTeamColor }}
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="font-bold text-slate-800 text-lg leading-tight break-words">
+                      {player.name}
+                      {isSelected && <span className="ml-2 text-green-600 text-sm whitespace-nowrap">✓ Selected</span>}
+                    </div>
+                    <div className="text-sm text-slate-500 font-medium break-words">{player.team}</div>
+                  </div>
                 </div>
-                <div className="text-sm text-slate-500 font-medium break-words">{player.team}</div>
               </div>
             ) : (
               <div className="mt-2 text-center italic text-sm">

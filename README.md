@@ -7,6 +7,8 @@ An interactive web application for conducting randomized NBA draft games with fr
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-Realtime%20DB-orange)](https://firebase.google.com/)
 
+**🌐 Play Now:** [https://nba-randomizer.vercel.app](https://nba-randomizer.vercel.app)
+
 ## ✨ Features
 
 ### 🏠 Local Multiplayer
@@ -29,7 +31,12 @@ An interactive web application for conducting randomized NBA draft games with fr
 ### 🎮 Game Mechanics
 - Draft one player for each position: **PG, SG, SF, PF, C, 6th Man**
 - Each pick randomizes to a specific **NBA team** and **historical era**
-- Draft authentic NBA players from the selected team/era combination
+- **Static NBA Player Database**: 150+ NBA legends and current stars (1960s-2025)
+  - Instant autocomplete suggestions as you type
+  - Includes positions, team colors, and complete team histories
+  - No API rate limits or delays
+- Validation ensures players match their team assignment
+- Duplicate player prevention across both rosters
 - Optional Skip and Move abilities for strategic gameplay
 
 ## 🚀 Quick Start
@@ -56,8 +63,9 @@ Open [https://nba-randomizer.vercel.app](https://nba-randomizer.vercel.app) to s
 3. Click **"Start Game"**
 4. Players alternate turns:
    - Click **"SPIN"** to randomize team and era
+   - Enter player name (autocomplete suggests valid players)
    - Select a position for your pick
-   - Enter the player's name and submit
+   - Click **"Lock In Pick"**
 
 ### Online Multiplayer
 1. Click **"Online Multiplayer"** on the start screen
@@ -69,7 +77,7 @@ Open [https://nba-randomizer.vercel.app](https://nba-randomizer.vercel.app) to s
 5. Take turns drafting (only active player can spin/draft)
 6. Use **"Play Again"** after the game to rematch with swapped starting player
 
-## 🔧 Firebase Setup (Required for Online Multiplayer)
+## 🔧 Firebase Setup (Required for Online Multiplayer Only)
 
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
 
@@ -105,16 +113,29 @@ const firebaseConfig = {
 };
 ```
 
-6. (Optional) Create `.env.local` for environment variables - see `.env.example`
+6. (Optional) Create `.env.local` for environment variables:
+```env
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_database_url
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+**Note**: Local multiplayer works without Firebase configuration!
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Database**: [Firebase Realtime Database](https://firebase.google.com/products/realtime-database)
+- **Database**: [Firebase Realtime Database](https://firebase.google.com/products/realtime-database) (Online mode only)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Deployment**: [Vercel](https://vercel.com/)
+- **Animations**: [Anime.js](https://animejs.com/)
 
 ## 📂 Project Structure
 
@@ -130,14 +151,16 @@ src/
 │   │   ├── StartScreen.tsx      # Mode selection & configuration
 │   │   ├── SpinnerCard.tsx      # Team/era randomizer UI
 │   │   ├── EndScreen.tsx        # Game results display
-│   │   ├── RosterDisplay.tsx    # Player roster with move functionality
+│   │   ├── RosterDisplay.tsx    # Player roster with team colors
 │   │   └── MultiplayerSetup.tsx # Online game creation/joining
 │   └── ui/                      # Reusable UI components
 │       ├── Button.tsx           # Styled button component
 │       ├── Card.tsx             # Card container
-│       └── Logo.tsx             # NBA logo component
+│       ├── Logo.tsx             # NBA logo component
+│       └── SimplePlayerAutocomplete.tsx # Player autocomplete (static DB)
 ├── constants/
-│   └── gameData.ts              # NBA teams and era definitions
+│   ├── gameData.ts              # NBA teams and era definitions
+│   └── nbaPlayers.ts            # Static NBA player database (150+ players)
 ├── lib/
 │   ├── animations.ts            # Animation utilities
 │   └── firebase.ts              # Firebase configuration
@@ -147,10 +170,26 @@ src/
 └── utils/
     ├── gameLogic.ts             # Draft logic and spin mechanics
     ├── multiplayer.ts           # Firebase multiplayer operations
-    └── storage.ts               # LocalStorage utilities
+    ├── storage.ts               # LocalStorage utilities
+    └── teamMapping.ts           # Team name to abbreviation mapping
 ```
 
 ## 🎯 Key Features Implementation
+
+### Static NBA Player Database
+The app uses a curated database of 150+ NBA players spanning from the 1960s to 2025, including:
+- **Franchise Legends**: Lakers (Magic, Kobe, Shaq), Celtics (Bird, Pierce, KG), Bulls (Jordan, Pippen, Rodman)
+- **Modern Stars**: LeBron, Durant, Curry, Giannis, Jokic, Embiid
+- **Complete Team Histories**: Multi-team careers tracked (e.g., LeBron: CLE/MIA/LAL)
+- **Position Data**: Accurate position assignments for each player
+- **Team Colors**: Visual indicators using official NBA team colors
+- **Instant Filtering**: No API delays or rate limits
+
+### Player Validation System
+- Validates player-team matchups using historical team data
+- Prevents duplicate player picks across both rosters
+- Only allows players from the database (no typos or invalid entries)
+- Clear error messages for invalid selections
 
 ### Player Roster Protection
 In online multiplayer, players can only interact with their own roster during the Move action. Opponent rosters are locked to prevent accidental or malicious interference.
@@ -161,16 +200,16 @@ After a rematch, the starting player alternates automatically, ensuring fair gam
 ### Real-Time Synchronization
 Firebase Realtime Database ensures both players see the same game state instantly. Action IDs prevent sync loops and duplicate updates.
 
-### Session Management
-Clean transitions between creating, joining, and leaving games. State is properly reset to prevent carryover issues.
-
 ## 🚢 Deployment
 
-### Deploy to Vercel (Recommended)
+### Live Demo on Vercel
+The application is deployed and accessible at: **[https://nba-randomizer.vercel.app](https://nba-randomizer.vercel.app)**
+
+### Deploy Your Own Version
 
 1. Push your code to GitHub
 2. Import project on [Vercel](https://vercel.com/)
-3. Add Firebase environment variables (if using `.env.local`)
+3. Add Firebase environment variables (only for online multiplayer)
 4. Deploy!
 
 Vercel automatically deploys on every push to the main branch.
@@ -202,9 +241,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Lucide](https://lucide.dev/) for beautiful icons
 - [Firebase](https://firebase.google.com/) for real-time multiplayer capabilities
 - [Vercel](https://vercel.com/) for seamless deployment
+- [Anime.js](https://animejs.com/) for smooth animations
 
 ---
 
 **Built with ❤️ for NBA fans**
 
-[Live Demo](https://nba-randomizer.vercel.app) | [Report Bug](https://github.com/backbenni88-ai/NBA_Randomizer/issues) | [Request Feature](https://github.com/backbenni88-ai/NBA_Randomizer/issues)
+**[🎮 Play Live on Vercel](https://nba-randomizer.vercel.app)** | [Report Bug](https://github.com/backbenni88-ai/NBA_Randomizer/issues) | [Request Feature](https://github.com/backbenni88-ai/NBA_Randomizer/issues)

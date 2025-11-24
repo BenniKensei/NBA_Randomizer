@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Shuffle, Clock, SkipForward } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { SimplePlayerAutocomplete } from '@/components/ui/SimplePlayerAutocomplete';
 import { SpinResult } from '@/types';
 import { cardReveal, popInGrid } from '@/lib/animations';
 
@@ -20,6 +21,7 @@ interface SpinnerCardProps {
   skipUsed: boolean;
   skipEnabled: boolean;
   disabled?: boolean;
+  validationError?: string | null;
 }
 
 export const SpinnerCard: React.FC<SpinnerCardProps> = ({
@@ -37,6 +39,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
   skipUsed,
   skipEnabled,
   disabled = false,
+  validationError = null,
 }) => {
   const resultCardsRef = useRef<HTMLDivElement>(null);
   const positionGridRef = useRef<HTMLDivElement>(null);
@@ -55,7 +58,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
     }
   }, [spinResult, isSpinning]);
   return (
-    <Card className="p-8 text-center flex flex-col items-center justify-center min-h-[380px] shadow-2xl">
+    <Card className="p-8 text-center flex flex-col items-center justify-center min-h-[380px] shadow-2xl overflow-visible">
       {!spinResult && !isSpinning ? (
         <div className="animate-in fade-in zoom-in duration-300">
           <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-8 rounded-full mb-6 inline-block shadow-lg relative overflow-hidden border-[3px] border-black">
@@ -135,62 +138,80 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
 
           {/* Input Phase */}
           {!isSpinning && spinResult && (
-            <div className="animate-in slide-in-from-bottom-4 fade-in duration-500">
-              {/* Position Selector */}
-              <div className="mb-4">
+            <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 overflow-visible">
+              {/* Player Name Input - Now FIRST */}
+              <div className="mb-4 relative overflow-visible" style={{ zIndex: 10 }}>
                 <label className="block text-sm font-bold text-slate-600 mb-2">
-                  Select Position:
+                  Enter Player Name:
                 </label>
-                {availablePositions.length > 0 ? (
-                  <div ref={positionGridRef} className="grid grid-cols-3 gap-2">
-                    {availablePositions.map((pos) => (
-                      <button
-                        key={pos}
-                        onClick={() => onPositionSelect(pos)}
-                        disabled={disabled}
-                        className={`
-                          px-4 py-3 rounded-lg font-bold text-sm transition-all
-                          ${
-                            selectedPosition === pos
-                              ? 'bg-orange-500 text-white ring-2 ring-orange-300 scale-105'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:scale-105'
-                          }
-                          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                        `}
-                      >
-                        {pos}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-red-600 font-bold">No positions available!</p>
-                    <p className="text-sm text-red-500">All roster slots are filled.</p>
-                  </div>
-                )}
+                <SimplePlayerAutocomplete
+                  value={draftInput}
+                  onChange={onInputChange}
+                  placeholder={`Name a ${spinResult.team.name} player...`}
+                  maxLength={50}
+                  disabled={disabled}
+                  className="w-full p-4 text-lg border-2 border-slate-300 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-center font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
               </div>
 
-              {/* Player Name Input */}
-              {selectedPosition && (
-                <>
-                  <input
-                    type="text"
-                    value={draftInput}
-                    onChange={(e) => onInputChange(e.target.value)}
-                    placeholder={`Name a ${spinResult.team.name} ${selectedPosition}...`}
-                    className="w-full p-4 text-lg border-2 border-slate-300 rounded-lg mb-4 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-center font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400"
-                    autoFocus
-                    disabled={disabled}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !disabled && onSubmit()}
-                  />
-                  <Button 
-                    onClick={onSubmit} 
-                    disabled={!draftInput.trim() || disabled} 
-                    className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all"
-                  >
-                    🔒 Lock In Pick
-                  </Button>
-                </>
+              {/* Position Selector - Now SECOND, only shows after player selected */}
+              {draftInput.trim() && (
+                <div className="mb-4">
+                  <label className="block text-sm font-bold text-slate-600 mb-2">
+                    Select Position:
+                  </label>
+                  {availablePositions.length > 0 ? (
+                    <div ref={positionGridRef} className="grid grid-cols-3 gap-2">
+                      {availablePositions.map((pos) => (
+                        <button
+                          key={pos}
+                          onClick={() => onPositionSelect(pos)}
+                          disabled={disabled}
+                          className={`
+                            px-4 py-3 rounded-lg font-bold text-sm transition-all
+                            ${
+                              selectedPosition === pos
+                                ? 'bg-orange-500 text-white ring-2 ring-orange-300 scale-105'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:scale-105'
+                            }
+                            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                          `}
+                        >
+                          {pos}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                      <p className="text-red-600 font-bold">No positions available!</p>
+                      <p className="text-sm text-red-500">All roster slots are filled.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Validation Error Message */}
+              {validationError && (
+                <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg animate-in fade-in slide-in-from-top duration-300">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <span className="text-2xl">⚠️</span>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">Invalid Selection</p>
+                      <p className="text-sm">{validationError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Submit Button - Only shows when both player and position selected */}
+              {draftInput.trim() && selectedPosition && (
+                <Button 
+                  onClick={onSubmit} 
+                  disabled={!draftInput.trim() || !selectedPosition || disabled} 
+                  className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all"
+                >
+                  🔒 Lock In Pick
+                </Button>
               )}
             </div>
           )}
