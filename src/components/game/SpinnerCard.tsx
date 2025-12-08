@@ -3,6 +3,7 @@ import { Shuffle, Clock, SkipForward } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SimplePlayerAutocomplete } from '@/components/ui/SimplePlayerAutocomplete';
+import { SpinningCourt } from '@/components/ui/SpinningCourt';
 import { SpinResult } from '@/types';
 import { cardReveal, popInGrid } from '@/lib/animations';
 
@@ -58,7 +59,8 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
     }
   }, [spinResult, isSpinning]);
   return (
-    <Card className="p-4 md:p-8 text-center flex flex-col items-center justify-center min-h-[380px] shadow-2xl overflow-visible">
+    <Card className="p-4 md:p-8 text-center flex flex-col items-center justify-center min-h-[380px] shadow-2xl overflow-visible relative">
+      {isSpinning && <SpinningCourt />}
       {!spinResult && !isSpinning ? (
         <div className="animate-in fade-in zoom-in duration-300">
           <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-8 rounded-full mb-6 inline-block shadow-lg relative overflow-hidden border-[3px] border-black">

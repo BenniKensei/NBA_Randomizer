@@ -3,6 +3,7 @@ import { RotateCcw } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { RosterDisplay } from '@/components/game/RosterDisplay';
+import { BasketballScene } from '@/components/ui/BasketballScene';
 import { Roster } from '@/types';
 
 interface EndScreenProps {
@@ -13,8 +14,9 @@ interface EndScreenProps {
 
 export const EndScreen: React.FC<EndScreenProps> = ({ p1Roster, p2Roster, onRestart }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-4 md:p-8 font-sans">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-4 md:p-8 font-sans relative overflow-hidden">
+      <BasketballScene />
+      <div className="max-w-5xl mx-auto relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black text-slate-900 mb-2 animate-in fade-in slide-in-from-top duration-500">
             🏆 DRAFT COMPLETE 🏆

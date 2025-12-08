@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Trophy, Settings, Users, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MultiplayerSetup } from '@/components/game/MultiplayerSetup';
+import { FloatingParticles } from '@/components/ui/FloatingParticles';
 import { staggerFadeIn } from '@/lib/animations';
 import { ERAS } from '@/constants/gameData';
 
@@ -85,8 +86,9 @@ export function StartScreen({
   // Show mode selection if no mode is selected yet
   if (!gameMode && !hasStartedDraft && !isWaitingForPlayer && !hasActiveOnlineGame) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
-        <div ref={contentRef} className="max-w-md w-full text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans relative overflow-hidden">
+        <FloatingParticles />
+        <div ref={contentRef} className="max-w-md w-full text-center relative z-10">
           <div className="mb-8 flex justify-center text-red-600">
             <Trophy size={80} strokeWidth={1.5} />
           </div>
@@ -122,8 +124,9 @@ export function StartScreen({
   // Show mode selection with Continue button if there's an active online game
   if (!gameMode && hasActiveOnlineGame && !isWaitingForPlayer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
-        <div ref={contentRef} className="max-w-md w-full text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans relative overflow-hidden">
+        <FloatingParticles />
+        <div ref={contentRef} className="max-w-md w-full text-center relative z-10">
           <div className="mb-8 flex justify-center text-red-600">
             <Trophy size={80} strokeWidth={1.5} />
           </div>
@@ -166,8 +169,9 @@ export function StartScreen({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans">
-      <div ref={contentRef} className="max-w-md w-full text-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans relative overflow-hidden">
+      <FloatingParticles />
+      <div ref={contentRef} className="max-w-md w-full text-center relative z-10">
         <div className="mb-8 flex justify-center text-red-600">
           <Trophy size={80} strokeWidth={1.5} />
         </div>

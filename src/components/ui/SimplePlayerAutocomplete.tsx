@@ -87,6 +87,14 @@ export function SimplePlayerAutocomplete({
     setShowSuggestions(false);
     setSuggestions([]);
     setSelectedIndex(-1);
+    
+    // Blur the input to fully close the dropdown
+    if (wrapperRef.current) {
+      const input = wrapperRef.current.querySelector('input');
+      if (input) {
+        input.blur();
+      }
+    }
   };
 
   // Force input field to show suggestions again when user types after selection
@@ -101,6 +109,15 @@ export function SimplePlayerAutocomplete({
     }
   };
 
+  // Handle focus - only show suggestions if there's text and user is actively typing
+  const handleFocus = () => {
+    if (value.trim().length >= 2 && !justSelected) {
+      const filtered = filterPlayers(value);
+      setSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    }
+  };
+
   return (
     <div ref={wrapperRef} className="relative">
       <input
@@ -108,6 +125,7 @@ export function SimplePlayerAutocomplete({
         value={value}
         onChange={(e) => handleInputChange(e.target.value)}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         placeholder={placeholder}
         maxLength={maxLength}
         disabled={disabled}
