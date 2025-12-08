@@ -311,6 +311,12 @@ export default function Game() {
     if (gameState.guestName) setGuestName(gameState.guestName);
     if (gameState.firstPlayer) setFirstPlayer(gameState.firstPlayer);
     
+    // Sync game settings from Firebase
+    if (gameState.activeEras) setActiveEras(gameState.activeEras);
+    if (gameState.noDuplicatesMode !== undefined) setNoDuplicatesMode(gameState.noDuplicatesMode);
+    if (gameState.skipEnabled !== undefined) setSkipEnabled(gameState.skipEnabled);
+    if (gameState.moveEnabled !== undefined) setMoveEnabled(gameState.moveEnabled);
+    
     // Always sync rosters from Firebase (the source of truth)
     const newP1Roster = Array.isArray(gameState.p1Roster) ? gameState.p1Roster : Array(6).fill(null);
     const newP2Roster = Array.isArray(gameState.p2Roster) ? gameState.p2Roster : Array(6).fill(null);
@@ -488,7 +494,7 @@ export default function Game() {
     
     spinIntervalRef.current = setInterval(() => {
       const randomTeam = TEAMS[Math.floor(Math.random() * TEAMS.length)];
-      const randomEra = ERAS[Math.floor(Math.random() * ERAS.length)];
+      const randomEra = activeEras[Math.floor(Math.random() * activeEras.length)];
       setSpinResult({ team: randomTeam, era: randomEra });
       
       counter++;
