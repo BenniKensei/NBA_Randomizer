@@ -140,47 +140,72 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 ## 📂 Project Structure
 
 ```
-src/
-├── app/                          # Next.js app directory
-│   ├── layout.tsx               # Root layout with metadata
-│   ├── page.tsx                 # Home page (game entry point)
-│   └── globals.css              # Global styles
-├── components/
-│   ├── game/                    # Game components
-│   │   ├── Game.tsx             # Main game controller & logic
-│   │   ├── StartScreen.tsx      # Mode selection & configuration
-│   │   ├── SpinnerCard.tsx      # Team/era randomizer UI
-│   │   ├── EndScreen.tsx        # Game results display
-│   │   ├── RosterDisplay.tsx    # Player roster with team colors
-│   │   └── MultiplayerSetup.tsx # Online game creation/joining
-│   └── ui/                      # Reusable UI components
-│       ├── Button.tsx           # Styled button component
-│       ├── Card.tsx             # Card container
-│       ├── Logo.tsx             # NBA logo component
-│       └── SimplePlayerAutocomplete.tsx # Player autocomplete (static DB)
-├── constants/
-│   ├── gameData.ts              # NBA teams and era definitions
-│   └── nbaPlayers.ts            # Static NBA player database (150+ players)
-├── lib/
-│   ├── animations.ts            # Animation utilities
-│   └── firebase.ts              # Firebase configuration
-├── types/
-│   ├── index.ts                 # Core type definitions
-│   └── multiplayer.ts           # Multiplayer game state types
-└── utils/
-    ├── gameLogic.ts             # Draft logic and spin mechanics
-    ├── multiplayer.ts           # Firebase multiplayer operations
-    ├── storage.ts               # LocalStorage utilities
-    └── teamMapping.ts           # Team name to abbreviation mapping
+NBA_Randomizer/
+├── docs/                        # Documentation
+│   ├── BUG_ANALYSIS.md
+│   ├── COPYRIGHT_FREE_RESOURCES.md
+│   ├── DEPLOYMENT.md
+│   ├── PROJECT_STRUCTURE.md
+│   └── README.md
+├── public/                      # Static assets
+├── scripts/                     # Deployment scripts
+│   ├── deploy.ps1               # Windows deployment
+│   └── deploy.sh                # Unix deployment
+├── src/                         # Source code
+│   ├── app/                     # Next.js app directory
+│   │   ├── layout.tsx           # Root layout with metadata
+│   │   ├── page.tsx             # Home page (game entry point)
+│   │   └── globals.css          # Global styles
+│   ├── components/
+│   │   ├── game/                # Game components
+│   │   │   ├── Game.tsx         # Main game controller & logic
+│   │   │   ├── StartScreen.tsx  # Mode selection & configuration
+│   │   │   ├── SpinnerCard.tsx  # Team/era randomizer UI
+│   │   │   ├── EndScreen.tsx    # Game results display
+│   │   │   ├── RosterDisplay.tsx # Player roster with team colors
+│   │   │   └── MultiplayerSetup.tsx # Online game creation/joining
+│   │   └── ui/                  # Reusable UI components
+│   │       ├── Button.tsx       # Styled button component
+│   │       ├── Card.tsx         # Card container
+│   │       ├── Logo.tsx         # NBA logo component
+│   │       └── SimplePlayerAutocomplete.tsx # Player autocomplete
+│   ├── constants/
+│   │   ├── gameData.ts          # NBA teams and era definitions
+│   │   └── nbaPlayers.ts        # Static NBA player database (1011 players)
+│   ├── hooks/
+│   │   └── useGameHelpers.ts    # Custom React hooks
+│   ├── lib/
+│   │   ├── animations.ts        # Animation utilities
+│   │   └── firebase.ts          # Firebase configuration
+│   ├── types/
+│   │   ├── index.ts             # Core type definitions
+│   │   └── multiplayer.ts       # Multiplayer game state types
+│   └── utils/
+│       ├── gameLogic.ts         # Draft logic and spin mechanics
+│       ├── multiplayer.ts       # Firebase multiplayer operations
+│       ├── storage.ts           # LocalStorage utilities
+│       └── teamMapping.ts       # Team name to abbreviation mapping
+├── .eslintrc.json               # ESLint configuration
+├── .gitignore                   # Git ignore rules
+├── database.rules.json          # Firebase security rules
+├── firebase.json                # Firebase configuration
+├── next.config.js               # Next.js configuration
+├── package.json                 # Dependencies and scripts
+├── postcss.config.js            # PostCSS configuration
+├── README.md                    # This file
+├── tailwind.config.js           # Tailwind CSS configuration
+├── tsconfig.json                # TypeScript configuration
+└── vercel.json                  # Vercel deployment config
 ```
 
 ## 🎯 Key Features Implementation
 
 ### Static NBA Player Database
-The app uses a curated database of 150+ NBA players spanning from the 1960s to 2025, including:
+The app uses a curated database of **1011+ NBA players** spanning from the 1960s to 2025, including:
 - **Franchise Legends**: Lakers (Magic, Kobe, Shaq), Celtics (Bird, Pierce, KG), Bulls (Jordan, Pippen, Rodman)
-- **Modern Stars**: LeBron, Durant, Curry, Giannis, Jokic, Embiid
+- **Modern Stars**: LeBron, Durant, Curry, Giannis, Jokic, Embiid, Tatum, Luka
 - **Complete Team Histories**: Multi-team careers tracked (e.g., LeBron: CLE/MIA/LAL)
+- **Historical Players**: 60s-90s legends including Wilt, Kareem, Dr. J, Hakeem
 - **Position Data**: Accurate position assignments for each player
 - **Team Colors**: Visual indicators using official NBA team colors
 - **Instant Filtering**: No API delays or rate limits

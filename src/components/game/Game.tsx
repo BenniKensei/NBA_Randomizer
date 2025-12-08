@@ -582,9 +582,11 @@ export default function Game() {
       setUsedTeams(newUsedTeams);
     }
 
+    // Clear all input states
     setDraftInput("");
     setSpinResult(null);
     setSelectedPosition(null);
+    setValidationError(null);
 
     const newPickIndex = pickIndex + 1;
     const newGameFinished = pickIndex === 11;

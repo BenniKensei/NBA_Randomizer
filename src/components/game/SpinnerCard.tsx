@@ -58,7 +58,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
     }
   }, [spinResult, isSpinning]);
   return (
-    <Card className="p-8 text-center flex flex-col items-center justify-center min-h-[380px] shadow-2xl overflow-visible">
+    <Card className="p-4 md:p-8 text-center flex flex-col items-center justify-center min-h-[380px] shadow-2xl overflow-visible">
       {!spinResult && !isSpinning ? (
         <div className="animate-in fade-in zoom-in duration-300">
           <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-8 rounded-full mb-6 inline-block shadow-lg relative overflow-hidden border-[3px] border-black">
@@ -83,8 +83,8 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
       ) : (
         <div className="w-full">
           {/* Result Display */}
-          <div ref={resultCardsRef} className="space-y-4 mb-8">
-            <div className={`p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border-2 border-slate-200 shadow-md transition-all ${isSpinning ? 'animate-pulse scale-105' : 'animate-in fade-in scale-in duration-500'}`}>
+          <div ref={resultCardsRef} className="space-y-3 md:space-y-4 mb-6 md:mb-8">
+            <div className={`p-4 md:p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border-2 border-slate-200 shadow-md transition-all ${isSpinning ? 'animate-pulse scale-105' : 'animate-in fade-in scale-in duration-500'}`}>
               <div className="flex justify-between items-center mb-2">
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Team Constraint</div>
                 {!isSpinning && spinResult && skipEnabled && (
@@ -104,12 +104,12 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                   </button>
                 )}
               </div>
-              <div className={`text-3xl md:text-4xl font-black leading-tight ${spinResult?.team.color || 'text-slate-800'} transition-colors duration-300`}>
+              <div className={`text-2xl md:text-3xl lg:text-4xl font-black leading-tight ${spinResult?.team.color || 'text-slate-800'} transition-colors duration-300`}>
                 {spinResult?.team.name || "..."}
               </div>
             </div>
 
-            <div className={`p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border-2 border-slate-200 shadow-md transition-all ${isSpinning ? 'animate-pulse scale-105' : 'animate-in fade-in scale-in duration-500 delay-100'}`}>
+            <div className={`p-4 md:p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border-2 border-slate-200 shadow-md transition-all ${isSpinning ? 'animate-pulse scale-105' : 'animate-in fade-in scale-in duration-500 delay-100'}`}>
               <div className="flex justify-between items-center mb-2">
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Time Period</div>
                 {!isSpinning && spinResult && skipEnabled && (
@@ -129,8 +129,8 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                   </button>
                 )}
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-slate-700 flex items-center justify-center gap-3">
-                <Clock size={28} className="text-slate-400" />
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-700 flex items-center justify-center gap-2 md:gap-3">
+                <Clock size={24} className="text-slate-400 md:w-7 md:h-7" />
                 {spinResult?.era || "..."}
               </div>
             </div>
@@ -140,7 +140,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
           {!isSpinning && spinResult && (
             <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 overflow-visible">
               {/* Player Name Input - Now FIRST */}
-              <div className="mb-4 relative overflow-visible" style={{ zIndex: 10 }}>
+              <div className="mb-6 relative" style={{ zIndex: 100, minHeight: '120px' }}>
                 <label className="block text-sm font-bold text-slate-600 mb-2">
                   Enter Player Name:
                 </label>
@@ -150,13 +150,13 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                   placeholder={`Name a ${spinResult.team.name} player...`}
                   maxLength={50}
                   disabled={disabled}
-                  className="w-full p-4 text-lg border-2 border-slate-300 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-center font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full p-3 md:p-4 text-base md:text-lg border-2 border-slate-300 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-center font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
               {/* Position Selector - Now SECOND, only shows after player selected */}
               {draftInput.trim() && (
-                <div className="mb-4">
+                <div className="mb-4" style={{ zIndex: 1 }}>
                   <label className="block text-sm font-bold text-slate-600 mb-2">
                     Select Position:
                   </label>
@@ -168,7 +168,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                           onClick={() => onPositionSelect(pos)}
                           disabled={disabled}
                           className={`
-                            px-4 py-3 rounded-lg font-bold text-sm transition-all
+                            px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-bold text-xs md:text-sm transition-all
                             ${
                               selectedPosition === pos
                                 ? 'bg-orange-500 text-white ring-2 ring-orange-300 scale-105'
@@ -208,7 +208,7 @@ export const SpinnerCard: React.FC<SpinnerCardProps> = ({
                 <Button 
                   onClick={onSubmit} 
                   disabled={!draftInput.trim() || !selectedPosition || disabled} 
-                  className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all"
+                  className="w-full h-12 md:h-14 text-base md:text-lg shadow-lg hover:shadow-xl transition-all"
                 >
                   🔒 Lock In Pick
                 </Button>

@@ -116,7 +116,7 @@ export function SimplePlayerAutocomplete({
       />
       
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 z-[99999] mt-1 bg-white border-2 border-slate-300 rounded-lg shadow-2xl max-h-[280px] overflow-y-auto">
+        <div className="absolute left-0 right-0 z-[9999] mt-1 bg-white border-2 border-slate-300 rounded-lg shadow-2xl max-h-[200px] md:max-h-[280px] overflow-y-auto">
           {suggestions.map((player, index) => (
             <button
               key={`${player.name}-${index}`}
