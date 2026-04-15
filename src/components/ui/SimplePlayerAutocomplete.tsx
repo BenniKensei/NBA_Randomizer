@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { filterPlayers, type PlayerInfo } from '../../constants/nbaPlayers';
 
 interface SimplePlayerAutocompleteProps {
+  /** Controlled input value from the draft form. */
   value: string;
+  /** Notifies the parent when the selected player text changes. */
   onChange: (value: string) => void;
   placeholder?: string;
   maxLength?: number;
@@ -10,6 +12,12 @@ interface SimplePlayerAutocompleteProps {
   disabled?: boolean;
 }
 
+/**
+ * Accessible player autocomplete backed by the static player database.
+ * The component keeps its own suggestion state so the draft form stays
+ * controlled while still supporting keyboard navigation and outside-click
+ * dismissal.
+ */
 export function SimplePlayerAutocomplete({
   value,
   onChange,
@@ -25,7 +33,8 @@ export function SimplePlayerAutocomplete({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Don't show suggestions if we just selected a player
+    // Suppress the next suggestion refresh after selection so the dropdown
+    // does not immediately reopen when the controlled value changes.
     if (justSelected) {
       setJustSelected(false);
       return;
@@ -42,7 +51,8 @@ export function SimplePlayerAutocomplete({
     setSelectedIndex(-1);
   }, [value, justSelected]);
 
-  // Close suggestions when clicking outside
+  // Close suggestions when clicking outside to keep the input predictable on
+  // mobile and when multiple overlays are present.
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -97,7 +107,8 @@ export function SimplePlayerAutocomplete({
     }
   };
 
-  // Force input field to show suggestions again when user types after selection
+  // Typing after selection must reopen suggestions immediately so the user can
+  // correct a partial or wrong player name without extra clicks.
   const handleInputChange = (newValue: string) => {
     setJustSelected(false); // User is typing, not selecting
     onChange(newValue);
@@ -109,7 +120,8 @@ export function SimplePlayerAutocomplete({
     }
   };
 
-  // Handle focus - only show suggestions if there's text and user is actively typing
+  // On focus we only resurface suggestions when there is already enough text to
+  // produce a meaningful filtered result.
   const handleFocus = () => {
     if (value.trim().length >= 2 && !justSelected) {
       const filtered = filterPlayers(value);

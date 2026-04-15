@@ -24,6 +24,12 @@ import {
 } from '@/utils/multiplayer';
 import { MultiplayerGameState } from '@/types/multiplayer';
 
+/**
+ * Main game controller for both local hot-seat play and Firebase-backed
+ * multiplayer. The component keeps the draft flow, roster validation,
+ * rematch logic, and synchronization concerns in one place so the UI layer
+ * stays predictable even when the game state changes from remote updates.
+ */
 export default function Game() {
   // Multiplayer State
   const [isOnlineMode, setIsOnlineMode] = useState(false);
@@ -65,6 +71,8 @@ export default function Game() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Derived State
+  // These values are derived from the current draft index so the UI never
+  // stores redundant turn information that can drift out of sync.
   const currentPlayer = (pickIndex % 2 === 0 ? 1 : 2) as 1 | 2;
   const picksPerPlayer = Math.floor(pickIndex / 2) + (pickIndex % 2);
   const currentRoster = currentPlayer === 1 ? p1Roster : p2Roster;
@@ -102,7 +110,9 @@ export default function Game() {
 
   // URL auto-join removed - players must use game code to join with proper names
 
-  // Save game state to localStorage (only for local mode)
+  // Persist only the local draft state so browser refreshes do not wipe an
+  // in-progress single-device game. Multiplayer state is intentionally left
+  // out because Firebase is the source of truth there.
   useEffect(() => {
     if (isOnlineMode) return; // Don't use localStorage in online mode
     
@@ -117,6 +127,11 @@ export default function Game() {
     }
   }, [gameStarted, pickIndex, p1Roster, p2Roster, gameFinished, isOnlineMode]);
 
+  /**
+   * Resets the local game session and applies the selected ruleset.
+   * The optional parameters are kept loose because the start screen can
+   * launch a fresh game from several different entry points.
+   */
   const startGame = (selectedEras?: string[], noDuplicates?: boolean, skipEnabledSetting?: boolean, moveEnabledSetting?: boolean) => {
     // If starting a new local game while in online mode, disconnect from online game
     if (isOnlineMode && multiplayerGameId && playerRole) {
@@ -156,6 +171,8 @@ export default function Game() {
   };
 
   // Multiplayer Functions
+  // These functions isolate session lifecycle concerns from the render tree so
+  // reconnects, rematches, and disconnects do not leak state between games.
   const createOnlineGame = async (playerName: string) => {
     // If creating a new online game while in another online game, disconnect from the old one
     if (isOnlineMode && multiplayerGameId && playerRole) {
@@ -293,7 +310,7 @@ export default function Game() {
   };
 
   const syncGameState = (gameState: MultiplayerGameState) => {
-    // Prevent sync loops - don't apply updates we just sent
+    // Prevent sync loops by ignoring updates we originated locally.
     if (gameState.lastActionId === lastSyncedActionId.current) {
       return;
     }
@@ -317,7 +334,8 @@ export default function Game() {
     if (gameState.skipEnabled !== undefined) setSkipEnabled(gameState.skipEnabled);
     if (gameState.moveEnabled !== undefined) setMoveEnabled(gameState.moveEnabled);
     
-    // Always sync rosters from Firebase (the source of truth)
+    // Firebase remains the source of truth for multiplayer rosters because
+    // both clients can update the same record via realtime events.
     const newP1Roster = Array.isArray(gameState.p1Roster) ? gameState.p1Roster : Array(6).fill(null);
     const newP2Roster = Array.isArray(gameState.p2Roster) ? gameState.p2Roster : Array(6).fill(null);
     
@@ -375,8 +393,8 @@ export default function Game() {
   };
 
   const backToMenu = () => {
-    // If in online mode, just go back to menu without disconnecting
-    // This allows players to return to the game
+    // In online mode we keep the session alive so a player can leave the game
+    // screen temporarily without forcing a disconnect for the other client.
     setGameStarted(false);
     // Don't clear multiplayer state - keep connection active
     
@@ -392,7 +410,8 @@ export default function Game() {
   };
   
   const cleanupMultiplayerSession = () => {
-    // Completely disconnect from multiplayer session
+    // Full teardown is reserved for terminal session failures or explicit
+    // exits, because it clears both local UI state and the active room data.
     setIsOnlineMode(false);
     setMultiplayerGameId(null);
     setIsWaitingForPlayer(false);

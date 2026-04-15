@@ -3,12 +3,19 @@ import { Button } from '@/components/ui/Button';
 import { Users, Copy, Check } from 'lucide-react';
 
 interface MultiplayerSetupProps {
+  /** Creates a new multiplayer room for the current host. */
   onCreateGame: (playerName: string) => void;
+  /** Joins a remote room using the game code entered by the user. */
   onJoinGame: (gameId: string, playerName: string) => void;
   gameUrl?: string;
   isWaitingForPlayer?: boolean;
 }
 
+/**
+ * Multiplayer lobby and join form.
+ * It intentionally keeps the join code UX simple because the room code is the
+ * only identifier players need to share outside the app.
+ */
 export function MultiplayerSetup({ 
   onCreateGame, 
   onJoinGame, 
@@ -19,12 +26,20 @@ export function MultiplayerSetup({
   const [playerName, setPlayerName] = useState('');
   const [copied, setCopied] = useState(false);
 
+  /**
+   * Accepts only fully-formed room codes and non-empty names so we fail fast
+   * before hitting Firebase with a malformed join request.
+   */
   const handleJoin = () => {
     if (joinCode.trim().length === 6 && playerName.trim()) {
       onJoinGame(joinCode.trim().toUpperCase(), playerName.trim());
     }
   };
 
+  /**
+   * Uses the legacy clipboard fallback so sharing works even in browsers that
+   * do not support the modern async clipboard API in this context.
+   */
   const handleCopyCode = (code: string) => {
     // Fallback method that works in all browsers
     const textArea = document.createElement('textarea');
@@ -49,6 +64,8 @@ export function MultiplayerSetup({
   };
 
   if (isWaitingForPlayer && gameUrl) {
+    // The room code is encoded in the shareable URL so the waiting state can be
+    // restored from a copied link without exposing extra session data.
     const gameCode = gameUrl.split('game=')[1];
     
     return (

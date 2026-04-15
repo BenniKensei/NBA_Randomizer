@@ -7,16 +7,25 @@ import { staggerFadeIn } from '@/lib/animations';
 import { ERAS } from '@/constants/gameData';
 
 interface StartScreenProps {
+  /** Starts a new local draft with the selected eras and rule toggles. */
   onStart: (selectedEras: string[], noDuplicates: boolean, skipEnabled: boolean, moveEnabled: boolean) => void;
   hasStartedDraft?: boolean;
+  /** Returns the user to an already-created multiplayer session. */
   onContinue?: () => void;
+  /** Creates a hosted online room and transitions the UI into waiting mode. */
   onCreateOnlineGame?: (playerName: string) => void;
+  /** Joins an existing online room using the six-character game code. */
   onJoinOnlineGame?: (gameId: string, playerName: string) => void;
   multiplayerGameUrl?: string;
   isWaitingForPlayer?: boolean;
   hasActiveOnlineGame?: boolean;
 }
 
+/**
+ * Entry screen that branches between local and online draft setup.
+ * The component keeps the mode-selection state local so the parent game
+ * controller only receives finalized configuration data.
+ */
 export function StartScreen({ 
   onStart, 
   hasStartedDraft, 
@@ -35,13 +44,15 @@ export function StartScreen({
   const [skipEnabled, setSkipEnabled] = useState(true);
   const [moveEnabled, setMoveEnabled] = useState(true);
 
-  // Reset to mode selection when hasStartedDraft becomes false
+  // Reset to mode selection when the parent indicates the draft has ended.
   useEffect(() => {
     if (!hasStartedDraft) {
       setGameMode(null);
     }
   }, [hasStartedDraft]);
 
+  // Animate the splash content once, after mount, to avoid re-running the
+  // staggered reveal on every state change.
   useEffect(() => {
     if (contentRef.current) {
       staggerFadeIn(contentRef.current.children, { delay: 200, duration: 800 });
@@ -83,7 +94,7 @@ export function StartScreen({
     }
   };
 
-  // Show mode selection if no mode is selected yet
+  // Show mode selection if no game mode has been committed yet.
   if (!gameMode && !hasStartedDraft && !isWaitingForPlayer && !hasActiveOnlineGame) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 font-sans relative overflow-hidden">

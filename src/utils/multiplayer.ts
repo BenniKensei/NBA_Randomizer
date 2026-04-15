@@ -3,22 +3,36 @@ import { database } from '@/lib/firebase';
 import { MultiplayerGameState } from '@/types/multiplayer';
 import { Roster } from '@/types';
 
-// Generate a unique game ID
+/**
+ * Generates a short room code that is easy to share verbally or over chat.
+ * The collision risk is acceptable because the app also checks room existence
+ * before letting a guest join.
+ */
 export const generateGameId = (): string => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
-// Generate a unique player ID
+/**
+ * Generates a browser-scoped player identifier used to distinguish hosts and
+ * guests without requiring account sign-in.
+ */
 export const generatePlayerId = (): string => {
   return Math.random().toString(36).substring(2, 15);
 };
 
-// Generate a unique action ID for deduplication
+/**
+ * Creates a monotonic-ish action token for conflict detection and replay
+ * suppression across realtime listeners.
+ */
 export const generateActionId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 };
 
-// Normalize roster arrays to handle Firebase null/undefined issues
+/**
+ * Normalizes roster payloads from Firebase into a fixed six-slot array.
+ * Firebase can round-trip arrays as sparse objects, so the UI always receives
+ * a predictable shape regardless of how the value was persisted.
+ */
 const normalizeRoster = (roster: any): Roster => {
   if (!roster || typeof roster !== 'object') {
     return Array(6).fill(null);
@@ -44,7 +58,11 @@ const normalizeRoster = (roster: any): Roster => {
   return normalized;
 };
 
-// Create a new multiplayer game
+/**
+ * Creates a new multiplayer room in Realtime Database.
+ * The initial record stores both the game settings and the first action ID so
+ * clients can detect the first authoritative update without a separate schema.
+ */
 export const createMultiplayerGame = async (
   hostId: string,
   gameSettings: {
@@ -96,7 +114,11 @@ export const createMultiplayerGame = async (
   return gameId;
 };
 
-// Join an existing multiplayer game
+/**
+ * Joins an existing room if it exists and still has an open guest slot.
+ * Returns `false` instead of throwing for common user-facing failures so the
+ * UI can show a friendly error message.
+ */
 export const joinMultiplayerGame = async (
   gameId: string,
   guestId: string,
@@ -135,7 +157,10 @@ export const joinMultiplayerGame = async (
   }
 };
 
-// Subscribe to game state changes
+/**
+ * Subscribes to room updates and converts Firebase quirks into the local game
+ * state shape expected by the React tree.
+ */
 export const subscribeToGame = (
   gameId: string,
   callback: (gameState: MultiplayerGameState | null) => void
@@ -161,7 +186,10 @@ export const subscribeToGame = (
   return unsubscribe;
 };
 
-// Mark player as disconnected
+/**
+ * Marks the active participant as disconnected so the remaining client can be
+ * routed back to the lobby instead of drafting into a dead session.
+ */
 export const markPlayerDisconnected = async (
   gameId: string,
   playerRole: 'host' | 'guest'
@@ -172,7 +200,10 @@ export const markPlayerDisconnected = async (
   });
 };
 
-// Update game state with transaction to prevent race conditions
+/**
+ * Writes game state through a transaction to prevent competing draft actions
+ * from overwriting each other when both clients react to the same spin.
+ */
 export const updateGameState = async (
   gameId: string,
   updates: Partial<MultiplayerGameState>,
@@ -208,13 +239,16 @@ export const updateGameState = async (
   }
 };
 
-// Delete a game
+/** Deletes a room after the game ends or the session is explicitly closed. */
 export const deleteGame = async (gameId: string): Promise<void> => {
   const gameRef = ref(database, `games/${gameId}`);
   await remove(gameRef);
 };
 
-// Clean up old games (older than 24 hours)
+/**
+ * Removes abandoned rooms older than 24 hours so the database does not retain
+ * stale game state forever.
+ */
 export const cleanupOldGames = async (): Promise<void> => {
   const gamesRef = ref(database, 'games');
   const snapshot = await get(gamesRef);

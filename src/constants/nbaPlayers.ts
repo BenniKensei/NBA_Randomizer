@@ -1069,18 +1069,83 @@ export const NBA_PLAYERS: PlayerInfo[] = [
   { name: "David Duke Jr", position: "G", team: "BKN", teamColor: "#000000", teamHistory: ["BKN", "SAS"] },
   { name: "Kessler Edwards", position: "F", team: "BKN", teamColor: "#000000", teamHistory: ["BKN", "SAC"] },
   { name: "Day'Ron Sharpe", position: "C", team: "BKN", teamColor: "#000000", teamHistory: ["BKN"] },
+
+  // Active starter updates and additions
+  { name: "Alex Caruso", position: "G", team: "OKC", teamColor: "#007AC1", teamHistory: ["LAL", "CHI", "OKC"] },
+  { name: "Isaiah Hartenstein", position: "C", team: "OKC", teamColor: "#007AC1", teamHistory: ["HOU", "LAC", "CLE", "POR", "NYK", "OKC"] },
+  { name: "Luguentz Dort", position: "G", team: "OKC", teamColor: "#007AC1", teamHistory: ["OKC"] },
+  { name: "Cason Wallace", position: "G", team: "OKC", teamColor: "#007AC1", teamHistory: ["OKC"] },
+  { name: "De'Aaron Fox", position: "G", team: "SAS", teamColor: "#C4CED4", teamHistory: ["SAC", "SAS"] },
+  { name: "Zach LaVine", position: "G", team: "SAC", teamColor: "#5A2D81", teamHistory: ["MIN", "CHI", "SAC"] },
+  { name: "Keldon Johnson", position: "F", team: "SAS", teamColor: "#C4CED4", teamHistory: ["SAS"] },
+  { name: "Devin Vassell", position: "G-F", team: "SAS", teamColor: "#C4CED4", teamHistory: ["SAS"] },
+  { name: "Stephon Castle", position: "G", team: "SAS", teamColor: "#C4CED4", teamHistory: ["SAS"] },
+  { name: "Tre Jones", position: "G", team: "SAS", teamColor: "#C4CED4", teamHistory: ["SAS"] },
+  { name: "Alex Sarr", position: "C", team: "WAS", teamColor: "#002B5C", teamHistory: ["WAS"] },
+  { name: "Jaime Jaquez Jr", position: "F", team: "MIA", teamColor: "#98002E", teamHistory: ["MIA"] },
+  { name: "Brandon Clarke", position: "F", team: "MEM", teamColor: "#5D76A9", teamHistory: ["MEM"] },
+  { name: "Amen Thompson", position: "G", team: "HOU", teamColor: "#CE1141", teamHistory: ["HOU"] },
+
+  // Classic starter additions
+  { name: "Mark Price", position: "G", team: "CLE", teamColor: "#860038", teamHistory: ["CLE", "WAS"] },
+  { name: "Larry Johnson", position: "F", team: "CHA", teamColor: "#1D1160", teamHistory: ["CHA", "NYK"] },
+  { name: "Anthony Mason", position: "F", team: "NYK", teamColor: "#006BB6", teamHistory: ["NYK", "MIA", "CHA", "MIL"] },
+  { name: "Allan Houston", position: "G", team: "NYK", teamColor: "#006BB6", teamHistory: ["DET", "NYK"] },
+  { name: "Latrell Sprewell", position: "G-F", team: "NYK", teamColor: "#006BB6", teamHistory: ["GSW", "MIN", "NYK"] },
+  { name: "Kevin Johnson", position: "G", team: "PHX", teamColor: "#1D1160", teamHistory: ["CLE", "PHX"] },
+  { name: "Dan Majerle", position: "G", team: "PHX", teamColor: "#1D1160", teamHistory: ["PHX", "MIA", "CLE"] },
+  { name: "Tom Chambers", position: "F", team: "PHX", teamColor: "#1D1160", teamHistory: ["SD", "SEA", "PHX", "UTA", "CHA"] },
+  { name: "Mookie Blaylock", position: "G", team: "ATL", teamColor: "#E03A3E", teamHistory: ["NJ", "ATL", "GSW"] },
+  { name: "Kevin Willis", position: "C", team: "ATL", teamColor: "#E03A3E", teamHistory: ["ATL", "MIA", "HOU", "TOR", "DEN", "MIN", "SAS"] },
+  { name: "Dale Ellis", position: "G", team: "SEA", teamColor: "#00653A", teamHistory: ["MIL", "SEA", "DEN", "CHA", "SAS", "DAL", "LAL"] },
+  { name: "Detlef Schrempf", position: "F", team: "SEA", teamColor: "#00653A", teamHistory: ["DAL", "IND", "SEA", "POR"] },
+  { name: "Michael Finley", position: "F", team: "DAL", teamColor: "#00538C", teamHistory: ["PHX", "DAL", "SAS"] },
+  { name: "Shawn Bradley", position: "C", team: "DAL", teamColor: "#00538C", teamHistory: ["PHI", "NJ", "DAL"] },
+  { name: "Antonio McDyess", position: "F", team: "DEN", teamColor: "#0E2240", teamHistory: ["LAC", "DEN", "NYK", "DET", "SAS"] },
+  { name: "Rip Hamilton", position: "G", team: "DET", teamColor: "#C8102E", teamHistory: ["WAS", "DET"] },
+  { name: "Bill Laimbeer", position: "C", team: "DET", teamColor: "#C8102E", teamHistory: ["CLE", "DET"] },
+  { name: "Dennis Johnson", position: "G", team: "BOS", teamColor: "#007A33", teamHistory: ["SEA", "PHX", "BOS"] },
+  { name: "Cedric Maxwell", position: "F", team: "BOS", teamColor: "#007A33", teamHistory: ["BOS", "LAC", "HOU"] },
+  { name: "Mark Aguirre", position: "F", team: "DAL", teamColor: "#00538C", teamHistory: ["DAL", "DET", "LAC"] },
+  { name: "Bernard King", position: "F", team: "NYK", teamColor: "#006BB6", teamHistory: ["NJ", "UTA", "GSW", "NYK", "WAS"] },
+  { name: "Bob Lanier", position: "C", team: "DET", teamColor: "#C8102E", teamHistory: ["DET", "MIL"] },
+  { name: "Sidney Moncrief", position: "G", team: "MIL", teamColor: "#00471B", teamHistory: ["MIL", "ATL"] },
+  { name: "Marques Johnson", position: "F", team: "MIL", teamColor: "#00471B", teamHistory: ["MIL", "LAC", "GSW"] },
+  { name: "Alex English", position: "F", team: "DEN", teamColor: "#0E2240", teamHistory: ["MIL", "IND", "DEN", "DAL", "LAC"] },
+  { name: "Fat Lever", position: "G", team: "DEN", teamColor: "#0E2240", teamHistory: ["POR", "DEN", "DAL"] },
+  { name: "Reggie Lewis", position: "G", team: "BOS", teamColor: "#007A33", teamHistory: ["BOS"] },
+  { name: "Chris Mullin", position: "F", team: "GSW", teamColor: "#1D428A", teamHistory: ["GSW", "IND"] },
+  { name: "Mitch Richmond", position: "G", team: "SAC", teamColor: "#5A2D81", teamHistory: ["GSW", "SAC", "WAS", "LAL"] },
+  { name: "John Starks", position: "G", team: "NYK", teamColor: "#006BB6", teamHistory: ["GSW", "NYK", "CHI", "UTA"] },
+  { name: "Otis Thorpe", position: "F-C", team: "HOU", teamColor: "#CE1141", teamHistory: ["HOU", "POR", "DET", "VAN", "SAC"] },
 ];
+
+function normalizePlayerName(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[.'’\-]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function findPlayersByName(playerName: string): PlayerInfo[] {
+  const normalizedName = normalizePlayerName(playerName);
+
+  return NBA_PLAYERS.filter(player => normalizePlayerName(player.name) === normalizedName);
+}
 
 // Filter function for autocomplete
 export function filterPlayers(searchTerm: string): PlayerInfo[] {
-  const term = searchTerm.toLowerCase().trim();
+  const term = normalizePlayerName(searchTerm);
   
   if (!term || term.length < 2) return [];
   
   // Filter and remove duplicates by player name
-  const filtered = NBA_PLAYERS.filter(player => player.name.toLowerCase().includes(term));
+  const filtered = NBA_PLAYERS.filter(player => normalizePlayerName(player.name).includes(term));
   const uniquePlayers = filtered.filter((player, index, self) => 
-    index === self.findIndex(p => p.name.toLowerCase() === player.name.toLowerCase())
+    index === self.findIndex(p => normalizePlayerName(p.name) === normalizePlayerName(player.name))
   );
   
   return uniquePlayers;
@@ -1088,21 +1153,22 @@ export function filterPlayers(searchTerm: string): PlayerInfo[] {
 
 // Validate if a player has played for a specific team
 export function validatePlayerTeam(playerName: string, teamAbbreviation: string): boolean {
-  const player = NBA_PLAYERS.find(p => p.name.toLowerCase() === playerName.toLowerCase());
-  
-  if (!player) {
+  const matchingPlayers = findPlayersByName(playerName);
+
+  if (matchingPlayers.length === 0) {
     // Player not found in database - REJECT IT
     return false;
   }
-  
-  // Check if the team abbreviation is in the player's team history
-  return player.teamHistory.some(
-    team => team.toUpperCase() === teamAbbreviation.toUpperCase()
+
+  // Accept the player if any matching record includes the requested team.
+  return matchingPlayers.some(player => 
+    player.teamHistory.some(team => team.toUpperCase() === teamAbbreviation.toUpperCase())
   );
 }
 
 // Get player info by name
 export function getPlayerByName(playerName: string): PlayerInfo | undefined {
-  return NBA_PLAYERS.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+  const matchingPlayers = findPlayersByName(playerName);
+  return matchingPlayers.length > 0 ? matchingPlayers[matchingPlayers.length - 1] : undefined;
 }
 

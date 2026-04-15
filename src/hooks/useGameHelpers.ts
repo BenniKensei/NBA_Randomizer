@@ -1,9 +1,11 @@
-// Custom React hooks
+// Custom React hooks for timer cleanup and SSR-safe local state access.
 
 import { useEffect, useRef } from 'react';
 
 /**
- * Hook for cleanup of intervals and timeouts
+ * Tracks timers so a component can cancel every interval and timeout on
+ * unmount. This prevents orphaned animations and delayed callbacks from
+ * mutating state after the UI has moved on.
  */
 export const useCleanup = () => {
   const timersRef = useRef<{
@@ -35,7 +37,9 @@ export const useCleanup = () => {
 };
 
 /**
- * Hook for localStorage with SSR safety
+ * Reads and writes a localStorage value without touching `window` during SSR.
+ * The hook returns the last known value immediately, then hydrates from the
+ * browser storage once the component mounts.
  */
 export const useLocalStorage = <T,>(
   key: string,
