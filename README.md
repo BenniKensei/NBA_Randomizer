@@ -5,6 +5,13 @@ A realtime NBA draft game for local hot-seat play and lightweight online multipl
 ![Tests](https://img.shields.io/badge/tests-not%20configured-lightgrey)
 ![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
 
+### Screenshots
+<p align="center">
+  <img src="public/docs/home.png" width="30%" alt="Home Screen" />
+  <img src="public/docs/local_setup.png" width="30%" alt="Local Setup" />
+  <img src="public/docs/draft_screen.png" width="30%" alt="Draft Screen" />
+</p>
+
 ## I. Executive Summary
 NBA Draft Randomizer lets two players build fantasy NBA rosters by spinning for a random team and era, then drafting valid players from a curated database. The target user is anyone who wants a fast head-to-head draft game with no login wall, no external player API, and instant browser-based play.
 
