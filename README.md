@@ -29,8 +29,6 @@ Infrastructure: Vercel hosts the web app. Firebase hosts the realtime multiplaye
 Text flow:
 Client Request -> Next.js UI -> Firebase Realtime Database -> Subscription Update -> React State Sync -> UI Re-render
 
-Primary repository: [https://github.com/BenniKensei/NBA_Randomizer](https://github.com/BenniKensei/NBA_Randomizer)
-
 ## III. Environment Variables
 The current code base includes Firebase client config in source, but the production-safe shape for this project is the following environment contract.
 
