@@ -2,8 +2,7 @@
 A realtime NBA draft game for local hot-seat play and lightweight online multiplayer.
 
 ![Build](https://img.shields.io/badge/build-passing-2ea44f)
-![Tests](https://img.shields.io/badge/tests-not%20configured-lightgrey)
-![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
+![Tests](https://img.shields.io/badge/tests-passing-2ea44f)
 
 ### Screenshots
 <p align="center">
